@@ -123,14 +123,19 @@ struct cola{
 
 // IMPLEMENTACION DE LAS OPERACIONES DEL TAD GENERICO agrupacion
 
+Nodo* buscarPredecesor(const colecInterdep<ident, val>& c, const ident& id) {
+    Nodo* anterior = c.lista; // Empezamos en el centinela (o la cabeza)
+    // Avanzamos 'anterior' mientras el SIGUIENTE nodo exista y sea MENOR que 'id'
+    while (anterior->siguiente != nullptr && anterior->siguiente->id < id) {
+        anterior = anterior->siguiente;
+    }
+    return anterior;
+}
+
 //
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c){
-  //Creamos un el nodo centinela anteriormente explicado
-   //typename colecInterdep<ident, val>::Nodo* aux = new typename  colecInterdep<ident, val>::Nodo;
-    //Este no apuntara a nada puesto que todavia no hay datos
-    aux->sig = nullptr;
-  //Apuntamos al nodo centinela como primer elemento "ficticio"
-    c.primElmt=aux;
+  //Este tampoco apuntara a nada
+    c.primElmt=nullptr;
   //Definimos la variable de numero de elementos de la colección a 0
     c.numElem=0;
 }
@@ -153,28 +158,161 @@ template<typename ident, typename val> bool existe(const colecInterdep<ident, va
   // Primero de todo comprovamos que no sea vacia, para en caso de serlo salir con el minimo coste, puesto que sera seguro que no este el dato.
     if (esVacia) {return false}
   //Generamos un puntero auxiliar para recorrer el lista
-    typename colecInterdep<ident, val>::Nodo* aux = new typename       colecInterdep<ident, val>::Nodo;
+    typename colecInterdep<ident, val>::Nodo* aux = buscarPredecesor(c,id);
+    Nodo* anterior = c.lista; // Empezamos en el centinela (o la cabeza)
+
+    // Avanzamos 'anterior' mientras el SIGUIENTE nodo exista y sea MENOR que 'id'
+    while (anterior->siguiente != nullptr && anterior->siguiente->id < id) {
+        anterior = anterior->siguiente;
+    }
+    
+    return anterior;
+};
     //Y lo dejamos apuntando al primer elemento para empezar la busqueda
     aux = c.primElmt;
-  //Nos ponemos en posicion para apuntar a los elementos y entrar en el bucle de busqueda
-    aux = aux->sig;
-  //Empezamos el bucle
-    while (aux.sig!=nullptr && aux.id>)
-    
+  //Empezamos el bucle, lo continuaremos mientras sigan quedando datos por encontrar y no veamos un id mayor al que buscamos puesto que esta ordenada
+    while (aux.sig!=nullptr && aux.id<id){
+      if (id == aux.id){
+        delete aux;
+        return true;
+      }
+      aux = aux->sig;
+    }
+    delete aux;
+    return (id == aux.id);
+}
+//
+template<typename ident, typename val> bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id){
+  // Primero de todo comprovamos que no sea vacia, para en caso de serlo salir con el minimo coste, puesto que sera seguro que no este el dato.
+    if (esVacia) {return false}
+  //Generamos un puntero auxiliar para recorrer el lista
+    typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+    //Y lo dejamos apuntando al primer elemento para empezar la busqueda
+    aux = c.primElmt;
+  //Empezamos el bucle, lo continuaremos mientras sigan quedando datos por encontrar y no veamos un id mayor al que buscamos puesto que esta ordenada
+    while (aux.sig!=nullptr && aux.id<id){
+      if (id == aux.id){
+        if(aux.sup==nullptr){
+         delete aux;
+          return false;
+        }else{
+        delete aux;
+          return true;
+        }
+      }
+      aux = aux->sig;
+    }
+    if (id == aux.id){
+        if(aux.sup==nullptr){
+        delete aux;
+          return false;
+        }else{
+        delete aux;
+          return true;
+        }
+        
+    } delete aux; return false;
 }
 
 //
-template<typename ident, typename val> bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id){
+  // Primero de todo comprovamos que no sea vacia, para en caso de serlo salir con el minimo coste, puesto que sera seguro que no este el dato.
+    if (esVacia) {return false}
+  //Generamos un puntero auxiliar para recorrer el lista
+    typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+    //Y lo dejamos apuntando al primer elemento para empezar la busqueda
+    aux = c.primElmt;
+  //Empezamos el bucle, lo continuaremos mientras sigan quedando datos por encontrar y no veamos un id mayor al que buscamos puesto que esta ordenada
+    while (aux.sig!=nullptr && aux.id<id){
+      if (id == aux.id){
+        if(aux.sup==nullptr){
+          delete aux;
+          return true;
+        }else{
+          delete aux;
+          return false;
+        }
+      }
+      aux = aux->sig;
+    }
+    if (id == aux.id){
+        if(aux.sup==nullptr){
+          delete aux;
+          return true;
+        }else{
+          delete aux;
+          return false;
+        }
+      
+    } delete aux; return false;
+}
+
 
 //
-template<typename ident, typename val> bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool anadirIndependiente(colecInterdep<ident, val>& c, const ident& id, const val& v){
+  //si ya existe el dato fallara la escritura
+      // Primero de todo comprovamos que no sea vacia, para en caso de serlo salir con el minimo coste, puesto que sera seguro que no este el dato.
+    if (esVacia) {return false}
+  //Generamos un puntero auxiliar para recorrer el lista
+    typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+    //Y lo dejamos apuntando al primer elemento para empezar la busqueda
+    aux = c.primElmt;
+  //Empezamos el bucle, lo continuaremos mientras sigan quedando datos por encontrar y no veamos un id mayor al que buscamos puesto que esta ordenada
+    while (aux.sig!=nullptr && aux.id<id){
+      if (id == aux.id){
+        if(aux.sup==nullptr){
+          delete aux;
+          return true;
+        }else{
+          delete aux;
+          return false;
+        }
+      }
+      aux = aux->sig;
+    }
+    if (id == aux.id){
+        if(aux.sup==nullptr){
+          delete aux;
+          return true;
+        }else{
+          delete aux;
+          return false;
+        }
+      
+    } delete aux; return false;
+}
 
+
+    if (esVacia) {
+      typename colecInterdep<ident, val>::Nodo* aux = new typename       colecInterdep<ident, val>::Nodo;
+      aux.id=id;
+      aux.valor=v;
+      aux->sup=super;
+      aux->sig = nullptr;
+      c.primElmt=aux;
+      return true;
+    }
+    typename colecInterdep<ident, val>::Nodo* aux = new typename       colecInterdep<ident, val>::Nodo;
+    aux.id=id;
+    aux.valor=v;
+    aux->sup=super;
+    aux->sig = nullptr;
+    c.primElmt=aux;
+}
 
 //
-template<typename ident, typename val> bool anadirIndependiente(colecInterdep<ident, val>& c, const ident& id, const val& v);
-
-//
-template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
+template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+  //no puede depender de algo si la lista es vacia.
+    if (esVacia) {return false;}
+  //filtramos que si que exista el dato al que queremos que dependa
+  if (!existe(c, super)){return false;}
+    typename colecInterdep<ident, val>::Nodo* aux = new typename       colecInterdep<ident, val>::Nodo;
+    aux.id=id;
+    aux.valor=v;
+    aux->sup=super;
+    aux->sig = nullptr;
+    c.primElmt=aux;
+}
 
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
@@ -220,5 +358,7 @@ template<typename ident, typename val> unsigned int siguienteNumDependientes(con
 
 //
 template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c);
+
+
 #endif //fin de agrupacion.hpp
 
