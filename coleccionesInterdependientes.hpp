@@ -113,7 +113,7 @@ struct colecInterdep{
     struct Nodo {
         ident id;
         val valor;
-        ident identSup;
+        ident identSup ;
         unsigned int numDepend = 0;
         Nodo* siguiente;
       
@@ -123,8 +123,6 @@ struct colecInterdep{
       Nodo* iter;
 };
 
-
-// IMPLEMENTACION DE LAS OPERACIONES DEL TAD GENERICO agrupacion
 
 //
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c){
