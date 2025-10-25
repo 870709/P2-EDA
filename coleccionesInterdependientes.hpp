@@ -233,44 +233,48 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
   if(id != super){
     if(!existe(c, id)){
-      if(existe(c, super)){
         typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
         while(aux != nullptr && aux->ident != super){
           aux = aux->siguiente;
         }
-        aux->numDepend += 1;
-        typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
-        nuevo->id = id;
-        nuevo->val = v;
-        nuevo->identSup = aux;
-        nuevo->numDepend = 0;
-        nuevo->siguiente = nullptr;
+        if(aux->id == super){
+          aux->numDepend += 1;
+          typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
+          nuevo->id = id;
+          nuevo->val = v;
+          nuevo->identSup = aux;
+          nuevo->numDepend = 0;
+          nuevo->siguiente = nullptr;
 
-        //id del nuevo es menor que el del primer nodo
-        if(id < c.primElmt->id){
-          nuevo->siguiente = c.primElmt;
-          c.primElmt = nuevo;
-          c.numElem += 1;
-          return true;
-        } else {
-          aux = c.primElmt;
-          while(aux->siguiente != nullptr && aux->siguiente->id < id){
-            aux = aux->siguiente;
+          //id del nuevo es menor que el del primer nodo
+          if(id < c.primElmt->id){
+            nuevo->siguiente = c.primElmt;
+            c.primElmt = nuevo;
+            c.numElem += 1;
+            return true;
+          } else {
+            aux = c.primElmt;
+            while(aux->siguiente != nullptr && aux->siguiente->id < id){
+              aux = aux->siguiente;
+            }
+            typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
+            aux->siguiente = nuevo;
+            nuevo->siguiente = temp;
+            c.numElem += 1;
+            return true;
           }
-          typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
-          aux->siguiente = nuevo;
-          nuevo->siguiente = temp;
-          c.numElem += 1;
-          return true;
+        }else{
+          return false;
         }
-      }
     }
   }
   return false;
 }
 
 //
-template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
+template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
+  if()
+}
 
 //
 template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
