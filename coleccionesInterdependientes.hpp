@@ -112,7 +112,7 @@ struct colecInterdep{
     struct Nodo {
         ident id;
         val valor;
-        ident identSup ;
+        Nodo* identSup ;
         unsigned int numDepend = 0;
         Nodo* siguiente;
       
@@ -212,9 +212,8 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     while(aux->siguiente != nullptr && aux->siguiente->id > id){
       aux = aux->siguiente;
     } 
-      if(aux->siguiente != nullptr){//ya existe no podemos añadirlo
-        if( aux->siguiente->id==id){return false;}
-          
+      if(aux->siguiente != nullptr && aux->siguiente->id==id){//ya existe no podemos añadirlo
+          return false;
         }
      //hemos encontrado el hueco tanto si es final como si no
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
@@ -232,48 +231,96 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 //
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
   if(id != super){
-    if(!existe(c, id)){
-        typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-        while(aux != nullptr && aux->ident != super){
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, hueco = nullptr;
+    int max; 
+    if(id > super){
+      max = id;
+    }else{
+      max = super;
+    }
+     // en un recorrido de la colección confirmamos que no existe el nodo con ident id, guardamos el puntero al nodo con ident super. Recorremos solo 
+    while(aux != nullptr && aux->id <= max){
+      //confirmamos que no exista el nodo id 
+      if(aux->id == id){
+        return false;
+      }else if(aux->id == super){
+        sup = aux;
+      }
+      aux = aux->siguiente;
+    }
+    if(sup != nullptr){
+      sup->numDepend += 1;
+
+      typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
+      nuevo->id = id;
+      nuevo->val = v;
+      nuevo->identSup = aux;
+      nuevo->numDepend = 0;
+      nuevo->siguiente = nullptr;
+
+      //id del nuevo es menor que el del primer nodo
+      if(id < c.primElmt->id){
+        nuevo->siguiente = c.primElmt;
+        c.primElmt = nuevo;
+        c.numElem += 1;
+        return true;
+      } else {
+        aux = c.primElmt;
+        while(aux->siguiente != nullptr && aux->siguiente->id < id){
           aux = aux->siguiente;
         }
-        if(aux->id == super){
-          aux->numDepend += 1;
-          typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
-          nuevo->id = id;
-          nuevo->val = v;
-          nuevo->identSup = aux;
-          nuevo->numDepend = 0;
-          nuevo->siguiente = nullptr;
-
-          //id del nuevo es menor que el del primer nodo
-          if(id < c.primElmt->id){
-            nuevo->siguiente = c.primElmt;
-            c.primElmt = nuevo;
-            c.numElem += 1;
-            return true;
-          } else {
-            aux = c.primElmt;
-            while(aux->siguiente != nullptr && aux->siguiente->id < id){
-              aux = aux->siguiente;
-            }
-            typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
-            aux->siguiente = nuevo;
-            nuevo->siguiente = temp;
-            c.numElem += 1;
-            return true;
-          }
-        }else{
-          return false;
-        }
+        typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
+        aux->siguiente = nuevo;
+        nuevo->siguiente = temp;
+        c.numElem += 1;
+        return true;
+      }
+    }else{
+      return false;
     }
   }
   return false;
 }
 
+
+template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+  if(id!=super){
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, hueco = nullptr;
+    if(c.primElmt -> id == id){
+      return false;
+    }else {
+      // if(c.primElmt->id == super){
+      // sup = c.primElmt;
+      while(aux->siguiente != nullptr && aux->id >= min(id, super)){
+        if(aux->id > id && aux->siguiente->id < id){
+          hueco = aux;
+        }
+        if(aux->id == super){
+          sup = aux;
+        }
+        aux = aux->siguiente;
+      } 
+    }
+    
+
+
+    
+    
+  }
+}
+
+
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
-  if()
+  if (id != super){
+    if(existe(c, super)){
+      if(existeDependiente(c, id)){
+        
+      }else{
+
+      }
+    }else return false;
+  }else return false;
 }
 
 //
