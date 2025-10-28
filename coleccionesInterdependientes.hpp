@@ -237,10 +237,7 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     while(aux->siguiente != nullptr && aux->siguiente->id > id){
       aux = aux->siguiente;
     } 
-      if(aux->siguiente != nullptr){//ya existe no podemos añadirlo
-        if( aux->siguiente->id==id){return false;}
-          
-        }
+      if(auxP->siguiente == nullptr && auxP->siguiente->id==id){return false;}
       //hemos encontrado el hueco tanto si es final como si no
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->siguiente=aux->siguiente;
@@ -255,9 +252,119 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 }
 
 
-//
-template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
-
+//fadsfdsafdsafdsafdsafd
+template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+  //no hay padre
+  if(esVacia(c)||(id==super)){
+    return false; 
+  }else{
+    //optimizar generación de punteros. Los meto aqui por conveniencia
+      //colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
+      //colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+    if (c.primElmt->id == id) {
+        return false;//primero repetido
+    }
+    //Encontramos al padre
+    else if (c.primElmt->id == super) {
+      if(id<super){//sabremos que va primero, coste minimo. Padre e hueco encontrado, nos ahorramos el puntero
+        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+        auxN->id=id;
+        auxN->valor=v;
+        auxN->identSup=c.primElmt;
+        c.primElmt->numDepend++;
+        auxN->numDepend = 0;
+        auxN->siguiente=c.primElmt;
+        c.primElmt = auxN;
+        c.numElem++;
+        return true;
+      }
+      //empieza la busqueda del hueco real
+      colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+        auxH = auxH->siguiente;
+      }
+      if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
+      //hemos encontrado el hueco tanto si es final como si no
+      typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+      auxN->siguiente=auxH->siguiente;
+      auxH->siguiente=auxH;
+      auxH->id=id;
+      auxH->valor=v;
+      auxH->identSup=c.primElmt;
+      auxH->numDepend=0;
+      c.numElem++;
+      c.primElmt->numDepend++;//???????
+      return true;
+    }
+    //Hemos encontrado el hueco pero NO el padre en la primera pos
+    if (c.primElmt->id < id) {
+        //En busqueda del padre
+        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//el primero ya lo hemos mirado y buscamos en presente
+        while(auxP!=nullptr && auxP->id > id){
+          auxP = auxP->siguiente;
+        }
+        if(auxP==nullptr){//hemos llegado al final 
+          return false;
+        }
+        if(auxP->id!=super){//no esta
+          return false;
+        }
+        //encontrado
+        typename colecInterdep<ident, val>::Nodo* auxH = new typename colecInterdep<ident, val>::Nodo;
+        auxH->id=id;
+        auxH->valor=v;
+        auxH->identSup=auxP;
+        auxH->numDepend = 0;
+        auxH->siguiente=c.primElmt;
+        c.primElmt = auxH;
+        c.numElem++;
+        auxP->numDepend++;
+        return true;
+    }
+    bool padre= false;//padre encontrado
+    //ya podemos empezar la busqueda real
+    //vamos a jugar desde el nodo anterior para poder meterlo justo despues. Caso nada encontrado, mas generico
+      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+        if((auxH->siguiente->id==id)||(auxH->siguiente->id<super&&padre==false)){//si esta el nodo o nos hemos pasado al padre
+          return false;//abort
+        }
+        if(auxH->siguiente->id==super){//padre>hueco
+          auxP = auxH;//segumos con la busqueda del hijo
+          padre=true;
+        }
+         auxH = auxH->siguiente;
+      }
+      if(auxP->siguiente == nullptr && auxP->siguiente->id==id){return false;}
+      //hemos encontrado el hueco tanto si es final como si no
+      if (padre==true){
+        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+        auxN->siguiente=auxH->siguiente;
+        auxH->siguiente=auxN;
+        auxN->id=id;
+        auxN->valor=v;
+        auxN->identSup=auxP;
+        auxP->numDepend++;
+        auxN->numDepend=0;
+        c.numElem++;
+        return true;
+      }
+      auxP = auxH;//queda encontrar al padre
+      while(auxP->siguiente != nullptr && auxP->siguiente->id > id){
+        aux = aux->siguiente;
+      }
+      if(auxP->siguiente == nullptr && auxP->siguiente->id!=super){return false;}
+      typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+        auxN->siguiente=auxH->siguiente;
+        auxH->siguiente=auxN;
+        auxN->id=id;
+        auxN->valor=v;
+        auxN->identSup=auxP;
+        auxP->numDepend++;
+        auxN->numDepend=0;
+        c.numElem++;
+        return true;
+  }
+}
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
 
