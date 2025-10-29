@@ -15,12 +15,12 @@ int main(){
   // escribir(a);
   // cambiarPrioridad(a, 7);
   // escribir(a);
-
+  string id = "st1";
   colecInterdep<string, Evento> c;
   crear(c);
   cout << tamanyo(c) << endl;
-  bool ok = anadirIndependiente(c, "1", a);
-  cout << ok << tamanyo(c) << endl;
+  bool ok = anadirIndependiente(c, id, a);
+  cout << ok << "  "<< tamanyo(c) << endl;
 
   
 }

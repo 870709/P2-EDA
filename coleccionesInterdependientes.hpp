@@ -84,29 +84,29 @@ template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c)
 
 template<typename ident, typename val>
 struct colecInterdep{
-  friend void crear(colecInterdep<ident, val>& c);
-  friend bool esVacia(const colecInterdep<ident, val>& c);
-  friend bool existe(const colecInterdep<ident, val>& c, const ident& id);
-  friend unsigned int tamanyo(const colecInterdep<ident, val>& c);
-  friend bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id);
-  friend bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id);
-  friend bool anadirIndependiente(colecInterdep<ident, val>& c, const ident& id, const val& v);
-  friend bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
-  friend bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
-  friend bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
-  friend bool actualizarVal(colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
-  friend val obtenerVal(const colecInterdep<ident, val>& c, const ident& id);
-  friend ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id);
-  friend unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id);
-  friend bool borrar(colecInterdep<ident, val>& c, const ident& id);
-  friend void iniciarIterador( colecInterdep<ident, val>& c);
-  friend bool existeSiguiente(const colecInterdep<ident, val>& c);
-  friend ident siguienteIdent(const colecInterdep<ident, val>& c);
-  friend val siguienteVal(const colecInterdep<ident, val>& c);
-  friend bool siguienteDependiente(const colecInterdep<ident, val>& c);
-  friend ident siguienteSuperior(const colecInterdep<ident, val>& c);
-  friend unsigned int siguienteNumDependientes(const colecInterdep<ident, val>& c);
-  friend void avanza(colecInterdep<ident, val>& c);
+  friend void crear<ident, val>(colecInterdep<ident, val>& c);
+  friend bool esVacia<ident, val>(const colecInterdep<ident, val>& c);
+  friend bool existe<ident, val>(const colecInterdep<ident, val>& c, const ident& id);
+  friend unsigned int tamanyo <ident, val> (const colecInterdep<ident, val>& c);
+  friend bool existeDependiente <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend bool existeIndependiente <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend bool anadirIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& v);
+  friend bool anadirDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
+  friend bool hacerDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const ident& super);
+  friend bool hacerIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id);
+  friend bool actualizarVal <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
+  friend val obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend ident obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend unsigned int obtenerNumDependientes <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend bool borrar <ident, val> (colecInterdep<ident, val>& c, const ident& id);
+  friend void iniciarIterador <ident, val> ( colecInterdep<ident, val>& c);
+  friend bool existeSiguiente <ident, val> (const colecInterdep<ident, val>& c);
+  friend ident siguienteIdent <ident, val> (const colecInterdep<ident, val>& c);
+  friend val siguienteVal <ident, val> (const colecInterdep<ident, val>& c);
+  friend bool siguienteDependiente <ident, val> (const colecInterdep<ident, val>& c);
+  friend ident siguienteSuperior <ident, val> (const colecInterdep<ident, val>& c);
+  friend unsigned int siguienteNumDependientes <ident, val> (const colecInterdep<ident, val>& c);
+  friend void avanza <ident, val> (colecInterdep<ident, val>& c);
 
   private: 
     struct Nodo {
@@ -283,31 +283,31 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
 }
 
 
-template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
-  if(id!=super){
-    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, hueco = nullptr;
-    if(c.primElmt -> id == id){
-      return false;
-    }else {
-      // if(c.primElmt->id == super){
-      // sup = c.primElmt;
-      while(aux->siguiente != nullptr && aux->id >= min(id, super)){
-        if(aux->id > id && aux->siguiente->id < id){
-          hueco = aux;
-        }
-        if(aux->id == super){
-          sup = aux;
-        }
-        aux = aux->siguiente;
-      } 
-    }
+// template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+//   if(id!=super){
+//     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, hueco = nullptr;
+//     if(c.primElmt -> id == id){
+//       return false;
+//     }else {
+//       // if(c.primElmt->id == super){
+//       // sup = c.primElmt;
+//       while(aux->siguiente != nullptr && aux->id >= min(id, super)){
+//         if(aux->id > id && aux->siguiente->id < id){
+//           hueco = aux;
+//         }
+//         if(aux->id == super){
+//           sup = aux;
+//         }
+//         aux = aux->siguiente;
+//       } 
+//     }
     
 
 
     
     
-  }
-}
+//   }
+// }
 
 
 //
