@@ -258,15 +258,12 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
   if(esVacia(c)||(id==super)){
     return false; 
   }else{
-    //optimizar generación de punteros. Los meto aqui por conveniencia
-      //colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
-      //colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
     if (c.primElmt->id == id) {
-        return false;//primero repetido
+        return false;
     }
     //Encontramos al padre
     else if (c.primElmt->id == super) {
-      if(id<super){//sabremos que va primero, coste minimo. Padre e hueco encontrado, nos ahorramos el puntero
+      if(id<super){//acceso inmediato
         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->id=id;
         auxN->valor=v;
@@ -278,13 +275,12 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         c.numElem++;
         return true;
       }
-      //empieza la busqueda del hueco real
+      //hueco
       colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
       while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
         auxH = auxH->siguiente;
       }
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
-      //hemos encontrado el hueco tanto si es final como si no
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
       auxN->siguiente=auxH->siguiente;
       auxH->siguiente=auxH;
@@ -296,10 +292,10 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
       c.primElmt->numDepend++;//???????
       return true;
     }
-    //Hemos encontrado el hueco pero NO el padre en la primera pos
+    //hueco pero NO el padre 
     if (c.primElmt->id < id) {
         //En busqueda del padre
-        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//el primero ya lo hemos mirado y buscamos en presente
+        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;
         while(auxP!=nullptr && auxP->id > id){
           auxP = auxP->siguiente;
         }
@@ -321,25 +317,23 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         auxP->numDepend++;
         return true;
     }
-    bool padre= false;//padre encontrado
-    //ya podemos empezar la busqueda real
-    //vamos a jugar desde el nodo anterior para poder meterlo justo despues. Caso nada encontrado, mas generico
+    if(id>super){
     colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
       while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
-        if((auxH->siguiente->id==id)||(auxH->siguiente->id<super&&padre==false)){//si esta el nodo o nos hemos pasado al padre
+        if((auxH->siguiente->id==id))){//(auxH->siguiente->id<super&&padre==false
           return false;//abort
         }
-        if(auxH->siguiente->id==super){//padre>hueco
+        /*if(auxH->siguiente->id==super){//padre>hueco
           colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
           auxP = auxH;//segumos con la busqueda del hijo
           padre=true;
-        }
+        }*/
          auxH = auxH->siguiente;
       }
       
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
       //hemos encontrado el hueco tanto si es final como si no
-      if (padre==true){
+      /*if (padre==true){
         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->siguiente=auxH->siguiente;
         auxH->siguiente=auxN;
@@ -350,10 +344,10 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         auxN->numDepend=0;
         c.numElem++;
         return true;
-      }
+      }*/
       colecInterdep<ident, val> ::Nodo* auxP;
-      auxP = auxH->siguiente;//queda encontrar al padre
-      while(auxP!= nullptr && auxP->id > id){
+      auxP = auxH->siguiente;
+      while(auxP!= nullptr && auxP->id > super){
         aux = aux->siguiente;
       }
       if(auxP== nullptr && auxP->id!=super){return false;}
@@ -367,7 +361,43 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         auxN->numDepend=0;
         c.numElem++;
         return true;
-  }
+  }else{
+      colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
+      while(auxP!= nullptr && auxP->id > super){
+        aux = aux->siguiente;
+      }
+      if(auxP==nullptr&&auxP->id!=super){return false;}
+      colecInterdep<ident, val> ::Nodo* auxH;
+      auxH = auxP;//en el que estamos seguro que no es
+      //hemos encontrado el hueco tanto si es final como si no
+      /*if (padre==true){
+        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+        auxN->siguiente=auxH->siguiente;
+        auxH->siguiente=auxN;
+        auxN->id=id;
+        auxN->valor=v;
+        auxN->identSup=auxP;
+        auxP->numDepend++;
+        auxN->numDepend=0;
+        c.numElem++;
+        return true;
+      }*/
+      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+        auxH = auxH->siguiente;
+      }
+      if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
+      //if(auxP== nullptr && auxP->id!=super){return false;}
+      typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+        auxN->siguiente=auxH->siguiente;
+        auxH->siguiente=auxN;
+        auxN->id=id;
+        auxN->valor=v;
+        auxN->identSup=auxP;
+        auxP->numDepend++;
+        auxN->numDepend=0;
+        c.numElem++;
+        return true;
+    }
 }
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
