@@ -313,23 +313,49 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
   if (id != super){
-    if(existe(c, super)){
-      if(existeDependiente(c, id)){
-        
-      }else{
-
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, elem = nullptr;
+    while(aux != nullptr && aux->id <= max(sup, id)){
+      if(aux->id == id){
+        elem = aux;
       }
-    }else return false;
+      if(aux->id == super){
+        sup = aux;
+      }
+      aux = aux->siguiente;
+    }
+    if(sup != nullptr && elem != nullptr){
+      if(elem->identSup != nullptr){
+        elem->identSup->numDepend--;
+      }
+      elem->identSup = sup;
+      sup->numDepend++;
+    }else{
+      return false;
+    }
+
   }else return false;
 }
 
 //
-template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  //despues del recorrido aux es puntero al id(si existe) o al elemento siguiente(en este caso id no existe)
+  if(aux-> id == id){
+    aux->identSup->numDepend--;
+    aux->identSup = nullptr;
+    return true;
+  }else{
+    return false;
+  }
+}
 
 //pre: existe!!!
 template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, val>& c, const ident& id, const val& nuevo){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-  while(aux != nullptr && aux->id <= id){
+  while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   aux->val = nuevo;
@@ -339,7 +365,7 @@ template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, v
 //pre: existe
 template<typename ident, typename val> val obtenerVal(const colecInterdep<ident, val>& c, const ident& id){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-  while(aux != nullptr && aux->id <= id){
+  while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   return aux->valor;
