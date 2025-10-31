@@ -275,7 +275,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
       }
       //hueco
-      colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+      typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
       while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
         auxH = auxH->siguiente;
       }
@@ -294,7 +294,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
     //hueco pero NO el padre 
     if (c.primElmt->id > id) {
         //En busqueda del padre
-        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
+        typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
         while(auxP!=nullptr && auxP->id < id){
           auxP = auxP->siguiente;
         }
@@ -314,15 +314,15 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
     }
     if(id<super){
-    colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+    typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
       while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
          auxH = auxH->siguiente;
       }
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
-      colecInterdep<ident, val> ::Nodo* auxP;
+      typename colecInterdep<ident, val> ::Nodo* auxP;
       auxP = auxH->siguiente;
       while(auxP!= nullptr && auxP->id < super){
-        aux = aux->siguiente;
+        auxP = auxP->siguiente;
       }
       if(auxP == nullptr && auxP->id!=super){return false;}
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
@@ -336,12 +336,12 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         c.numElem++;
         return true;
   }else{
-      colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
+      typename colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
       while(auxP!= nullptr && auxP->id < super){
         auxP = auxP->siguiente;
       }
       if(auxP==nullptr&&auxP->id!=super){return false;}
-      colecInterdep<ident, val> ::Nodo* auxH;
+      typename colecInterdep<ident, val> ::Nodo* auxH;
       auxH = auxP;
       while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
         auxH = auxH->siguiente;
