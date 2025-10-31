@@ -282,11 +282,11 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
       auxN->siguiente=auxH->siguiente;
-      auxH->siguiente=auxH;
-      auxH->id=id;
-      auxH->valor=v;
-      auxH->identSup=c.primElmt;
-      auxH->numDepend=0;
+      auxH->siguiente=auxN;
+      auxN->id=id;
+      auxN->valor=v;
+      auxN->identSup=c.primElmt;
+      auxN->numDepend=0;
       c.numElem++;
       c.primElmt->numDepend++;
       return true;
@@ -295,7 +295,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
     if (c.primElmt->id > id) {
         //En busqueda del padre
         typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
-        while(auxP!=nullptr && auxP->id < id){
+        while(auxP!=nullptr && auxP->id < super){
           auxP = auxP->siguiente;
         }
         if(auxP==nullptr && auxP->id!=super){//hemos llegado al final 
