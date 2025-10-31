@@ -122,7 +122,6 @@ struct colecInterdep{
       Nodo* iter;
 };
 
-
 //
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c){
     c.primElmt = nullptr;
@@ -190,12 +189,14 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     c.primElmt = auxN;
     c.numElem=1;
     return true;
+    cout << "Creado el primero elemento"<< endl;
     }else{
     if (c.primElmt->id == id) {
         return false;//primero repetido
     }
-    //Comprovamos si fuera en la primera posición
-    else if (c.primElmt->id < id) {
+    //Comprobamos si fuera en la primera posición
+    else if (c.primElmt->id > id) {
+      cout << "Tenemos que meterlo al principio de la coleccion"<< endl;
         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->siguiente=c.primElmt;
         c.primElmt=auxN;
@@ -228,11 +229,13 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     }
 }
 
-//
+
+
+
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
   if(id != super){
-    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, hueco = nullptr;
-    int max; 
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, *sup = nullptr, *hueco = nullptr;
+    ident max; 
     if(id > super){
       max = id;
     }else{
@@ -245,16 +248,17 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return false;
       }else if(aux->id == super){
         sup = aux;
+        cout << "encontrado el sup" << endl;
       }
       aux = aux->siguiente;
     }
     if(sup != nullptr){
-      sup->numDepend += 1;
+      sup->numDepend++;
 
       typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
       nuevo->id = id;
-      nuevo->val = v;
-      nuevo->identSup = aux;
+      nuevo->valor = v;
+      nuevo->identSup = sup;
       nuevo->numDepend = 0;
       nuevo->siguiente = nullptr;
 
@@ -301,11 +305,6 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
 //         aux = aux->siguiente;
 //       } 
 //     }
-    
-
-
-    
-    
 //   }
 // }
 
@@ -335,6 +334,154 @@ template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident
 
   }else return false;
 }
+//version Enrique 
+// template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+//   //no hay padre
+//   if(esVacia(c)||(id==super)){
+//     return false; 
+//   }else{
+//     if (c.primElmt->id == id) {
+//         return false;
+//     }
+//     //Encontramos al padre
+//     else if (c.primElmt->id == super) {
+//       if(id<super){//acceso inmediato
+//         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//         auxN->id=id;
+//         auxN->valor=v;
+//         auxN->identSup=c.primElmt;
+//         c.primElmt->numDepend++;
+//         auxN->numDepend = 0;
+//         auxN->siguiente=c.primElmt;
+//         c.primElmt = auxN;
+//         c.numElem++;
+//         return true;
+//       }
+//       //hueco
+//       colecInterdep<ident, val>::Nodo* auxH = c.primElmt;
+//       while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+//         auxH = auxH->siguiente;
+//       }
+//       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
+//       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//       auxN->siguiente=auxH->siguiente;
+//       auxH->siguiente=auxH;
+//       auxH->id=id;
+//       auxH->valor=v;
+//       auxH->identSup=c.primElmt;
+//       auxH->numDepend=0;
+//       c.numElem++;
+//       c.primElmt->numDepend++;//???????
+//       return true;
+//     }
+//     //hueco pero NO el padre 
+//     if (c.primElmt->id < id) {
+//         //En busqueda del padre
+//         colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;
+//         while(auxP!=nullptr && auxP->id > id){
+//           auxP = auxP->siguiente;
+//         }
+//         if(auxP==nullptr){//hemos llegado al final 
+//           return false;
+//         }
+//         if(auxP->id!=super){//no esta
+//           return false;
+//         }
+//         //encontrado
+//         typename colecInterdep<ident, val>::Nodo* auxH = new typename colecInterdep<ident, val>::Nodo;
+//         auxH->id=id;
+//         auxH->valor=v;
+//         auxH->identSup=auxP;
+//         auxH->numDepend = 0;
+//         auxH->siguiente=c.primElmt;
+//         c.primElmt = auxH;
+//         c.numElem++;
+//         auxP->numDepend++;
+//         return true;
+//     }
+//     if(id>super){
+//     colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+//       while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+//         if((auxH->siguiente->id==id))){//(auxH->siguiente->id<super&&padre==false
+//           return false;//abort
+//         }
+//         /*if(auxH->siguiente->id==super){//padre>hueco
+//           colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
+//           auxP = auxH;//segumos con la busqueda del hijo
+//           padre=true;
+//         }*/
+//          auxH = auxH->siguiente;
+//       }
+      
+//       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
+//       //hemos encontrado el hueco tanto si es final como si no
+//       /*if (padre==true){
+//         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//         auxN->siguiente=auxH->siguiente;
+//         auxH->siguiente=auxN;
+//         auxN->id=id;
+//         auxN->valor=v;
+//         auxN->identSup=auxP;
+//         auxP->numDepend++;
+//         auxN->numDepend=0;
+//         c.numElem++;
+//         return true;
+//       }*/
+//       colecInterdep<ident, val> ::Nodo* auxP;
+//       auxP = auxH->siguiente;
+//       while(auxP!= nullptr && auxP->id > super){
+//         aux = aux->siguiente;
+//       }
+//       if(auxP== nullptr && auxP->id!=super){return false;}
+//       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//         auxN->siguiente=auxH->siguiente;
+//         auxH->siguiente=auxN;
+//         auxN->id=id;
+//         auxN->valor=v;
+//         auxN->identSup=auxP;
+//         auxP->numDepend++;
+//         auxN->numDepend=0;
+//         c.numElem++;
+//         return true;
+//   }else{
+//       colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
+//       while(auxP!= nullptr && auxP->id > super){
+//         aux = aux->siguiente;
+//       }
+//       if(auxP==nullptr&&auxP->id!=super){return false;}
+//       colecInterdep<ident, val> ::Nodo* auxH;
+//       auxH = auxP;//en el que estamos seguro que no es
+//       //hemos encontrado el hueco tanto si es final como si no
+//       /*if (padre==true){
+//         typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//         auxN->siguiente=auxH->siguiente;
+//         auxH->siguiente=auxN;
+//         auxN->id=id;
+//         auxN->valor=v;
+//         auxN->identSup=auxP;
+//         auxP->numDepend++;
+//         auxN->numDepend=0;
+//         c.numElem++;
+//         return true;
+//       }*/
+//       while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+//         auxH = auxH->siguiente;
+//       }
+//       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
+//       //if(auxP== nullptr && auxP->id!=super){return false;}
+//       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+//         auxN->siguiente=auxH->siguiente;
+//         auxH->siguiente=auxN;
+//         auxN->id=id;
+//         auxN->valor=v;
+//         auxN->identSup=auxP;
+//         auxP->numDepend++;
+//         auxN->numDepend=0;
+//         c.numElem++;
+//         return true;
+//     }
+// }
+// }
 
 //
 template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
@@ -433,5 +580,5 @@ template<typename ident, typename val> unsigned int siguienteNumDependientes(con
 template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c){
   c.iter = c.iter->siguiente;
 }
-#endif //fin de agrupacion.hpp
+#endif
 
