@@ -254,7 +254,6 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 
 //fadsfdsafdsafdsafdsafd
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
-  //no hay padre
   if(esVacia(c)||(id==super)){
     return false; 
   }else{
@@ -277,7 +276,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
       }
       //hueco
       colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
-      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+      while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
         auxH = auxH->siguiente;
       }
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
@@ -289,20 +288,17 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
       auxH->identSup=c.primElmt;
       auxH->numDepend=0;
       c.numElem++;
-      c.primElmt->numDepend++;//???????
+      c.primElmt->numDepend++;
       return true;
     }
     //hueco pero NO el padre 
-    if (c.primElmt->id < id) {
+    if (c.primElmt->id > id) {
         //En busqueda del padre
-        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;
-        while(auxP!=nullptr && auxP->id > id){
+        colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
+        while(auxP!=nullptr && auxP->id < id){
           auxP = auxP->siguiente;
         }
-        if(auxP==nullptr){//hemos llegado al final 
-          return false;
-        }
-        if(auxP->id!=super){//no esta
+        if(auxP==nullptr && auxP->id!=super){//hemos llegado al final 
           return false;
         }
         //encontrado
@@ -317,40 +313,18 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         auxP->numDepend++;
         return true;
     }
-    if(id>super){
+    if(id<super){
     colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
-      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
-        if((auxH->siguiente->id==id))){//(auxH->siguiente->id<super&&padre==false
-          return false;//abort
-        }
-        /*if(auxH->siguiente->id==super){//padre>hueco
-          colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
-          auxP = auxH;//segumos con la busqueda del hijo
-          padre=true;
-        }*/
+      while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
          auxH = auxH->siguiente;
       }
-      
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
-      //hemos encontrado el hueco tanto si es final como si no
-      /*if (padre==true){
-        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
-        auxN->siguiente=auxH->siguiente;
-        auxH->siguiente=auxN;
-        auxN->id=id;
-        auxN->valor=v;
-        auxN->identSup=auxP;
-        auxP->numDepend++;
-        auxN->numDepend=0;
-        c.numElem++;
-        return true;
-      }*/
       colecInterdep<ident, val> ::Nodo* auxP;
       auxP = auxH->siguiente;
-      while(auxP!= nullptr && auxP->id > super){
+      while(auxP!= nullptr && auxP->id < super){
         aux = aux->siguiente;
       }
-      if(auxP== nullptr && auxP->id!=super){return false;}
+      if(auxP == nullptr && auxP->id!=super){return false;}
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->siguiente=auxH->siguiente;
         auxH->siguiente=auxN;
@@ -363,30 +337,16 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
   }else{
       colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
-      while(auxP!= nullptr && auxP->id > super){
+      while(auxP!= nullptr && auxP->id < super){
         auxP = auxP->siguiente;
       }
       if(auxP==nullptr&&auxP->id!=super){return false;}
       colecInterdep<ident, val> ::Nodo* auxH;
-      auxH = auxP;//en el que estamos seguro que no es
-      //hemos encontrado el hueco tanto si es final como si no
-      /*if (padre==true){
-        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
-        auxN->siguiente=auxH->siguiente;
-        auxH->siguiente=auxN;
-        auxN->id=id;
-        auxN->valor=v;
-        auxN->identSup=auxP;
-        auxP->numDepend++;
-        auxN->numDepend=0;
-        c.numElem++;
-        return true;
-      }*/
-      while(auxH->siguiente != nullptr && auxH->siguiente->id > id){
+      auxH = auxP;
+      while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
         auxH = auxH->siguiente;
       }
       if(auxH->siguiente == nullptr && auxH->siguiente->id==id){return false;}
-      //if(auxP== nullptr && auxP->id!=super){return false;}
       typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
         auxN->siguiente=auxH->siguiente;
         auxH->siguiente=auxN;
@@ -399,7 +359,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
     }
 }
-
+}
 //
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
   if (id != super){
