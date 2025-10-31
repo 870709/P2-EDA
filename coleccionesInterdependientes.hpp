@@ -405,12 +405,12 @@ template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident
   if (id != super){
     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
     if(id<super){
-      while(aux != nullptr && aux->id > id){
+      while(aux != nullptr && aux->id < id){
         aux = aux->siguiente;
       }
       if(aux== nullptr && aux->id!=id){return false;}
       colecInterdep<ident, val> ::Nodo* auxP=aux->siguiente;
-      while(auxP!= nullptr && auxP->id > super){
+      while(auxP!= nullptr && auxP->id < super){
         auxP = auxP->siguiente;
       }
       if(auxP==nullptr&&auxP->id!=super){return false;}
@@ -422,12 +422,12 @@ template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident
                 return TRUE;
     }else{
           typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
-          while(auxP != nullptr && auxP->id > super){
+          while(auxP != nullptr && auxP->id < super){
             auxP = auxP->siguiente;
           }
           if(auxP== nullptr && auxP->id!=super){return false;}
           colecInterdep<ident, val> ::Nodo* aux=auxP->siguiente;
-          while(aux!= nullptr && aux->id > id){
+          while(aux!= nullptr && aux->id < id){
             aux = aux->siguiente;
           }
           if(aux==nullptr&&aux->id!=id){return false;}
@@ -499,11 +499,14 @@ template<typename ident, typename val> unsigned int obtenerNumDependientes(const
 //
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-  while(aux != nullptr && aux->id <= id){
+  while(aux->siguiente != nullptr && aux->siguiente->id < id){
     aux = aux->siguiente;
-    if(aux->identSup==id){return false;}
   }
-  return aux->identSup->id;
+  if(auxH->siguiente == nullptr && auxH->siguiente->id!=id && auxH->siguiente->numDepend!=0){return false;}
+  typename colecInterdep<ident, val> ::Nodo* controlador = aux->siguiente;
+  aux->siguiente=controlador->siguiente;
+  delete(controlador);
+  return true;
 }
 
 //
