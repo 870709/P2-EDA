@@ -364,7 +364,7 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
   }else{
       colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
       while(auxP!= nullptr && auxP->id > super){
-        aux = aux->siguiente;
+        auxP = auxP->siguiente;
       }
       if(auxP==nullptr&&auxP->id!=super){return false;}
       colecInterdep<ident, val> ::Nodo* auxH;
@@ -399,48 +399,150 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
     }
 }
-//
-template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
 
 //
-template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
+  if (id != super){
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+    if(id<super){
+      while(aux != nullptr && aux->id > id){
+        aux = aux->siguiente;
+      }
+      if(aux== nullptr && aux->id!=id){return false;}
+      colecInterdep<ident, val> ::Nodo* auxP=aux->siguiente;
+      while(auxP!= nullptr && auxP->id > super){
+        auxP = auxP->siguiente;
+      }
+      if(auxP==nullptr&&auxP->id!=super){return false;}
+      if(aux->identSup != nullptr){
+        aux->identSup->numDepend--;
+      }
+        aux->identSup = auxP;
+        auxP->numDepend++;
+                return TRUE;
+    }else{
+          typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
+          while(auxP != nullptr && auxP->id > super){
+            auxP = auxP->siguiente;
+          }
+          if(auxP== nullptr && auxP->id!=super){return false;}
+          colecInterdep<ident, val> ::Nodo* aux=auxP->siguiente;
+          while(aux!= nullptr && aux->id > id){
+            aux = aux->siguiente;
+          }
+          if(aux==nullptr&&aux->id!=id){return false;}
+          if(aux->identSup != nullptr){
+            aux->identSup->numDepend--;
+          }
+            aux->identSup = auxP;
+            auxP->numDepend++;
+          return TRUE;
+        }
+  }else{
+    return false;
+  }
+}
 
 //
-template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
+template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  //despues del recorrido aux es puntero al id(si existe) o al elemento siguiente(en este caso id no existe)
+  if(aux-> id == id){
+    aux->identSup->numDepend--;
+    aux->identSup = nullptr;
+    return true;
+  }else{
+    return false;
+  }
+}
+
+//pre: existe!!!
+template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, val>& c, const ident& id, const val& nuevo){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  aux->val = nuevo;
+  return true;
+}
+
+//pre: existe
+template<typename ident, typename val> val obtenerVal(const colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  return aux->valor;
+}
+
+//pre: existe y es dependiente!!!!
+template<typename ident, typename val> ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id <= id){
+    aux = aux->siguiente;
+  }
+  return aux->identSup->id;
+}
+
+//pre: existe!!!!
+template<typename ident, typename val> unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id <= id){
+    aux = aux->siguiente;
+  }
+  return aux->numDepend;
+}
 
 //
-template<typename ident, typename val> val obtenerVal(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id <= id){
+    aux = aux->siguiente;
+    if(aux->identSup==id){return false;}
+  }
+  return aux->identSup->id;
+}
 
 //
-template<typename ident, typename val> ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> void iniciarIterador( colecInterdep<ident, val>& c){
+  c.iter = c.primElmt;
+}
 
 //
-template<typename ident, typename val> unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool existeSiguiente(const colecInterdep<ident, val>& c){
+  return c.iter == nullptr;
+}
 
-//
-template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id);
-
-//
-template<typename ident, typename val> void iniciarIterador( colecInterdep<ident, val>& c);
-
-//
-template<typename ident, typename val> bool existeSiguiente(const colecInterdep<ident, val>& c);
+//OJO precondicion!!!! Parcial: la operación no está definida si no quedan elementos por visitar (no existeSiguiente?(c))}
+template<typename ident, typename val> ident siguienteIdent(const colecInterdep<ident, val>& c){
+  return c.iter -> id;
+}
 
 // 
-template<typename ident, typename val> ident siguienteIdent(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> val siguienteVal(const colecInterdep<ident, val>& c){
+  return c.iter -> valor;
+}
 
 // 
-template<typename ident, typename val> val siguienteVal(const colecInterdep<ident, val>& c);
-
-// 
-template<typename ident, typename val> bool siguienteDependiente(const colecInterdep<ident, val>& c);
-
-//
-template<typename ident, typename val> ident siguienteSuperior(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool siguienteDependiente(const colecInterdep<ident, val>& c){
+  return !(c.iter -> identSup == nullptr);
+}
 
 //
-template<typename ident, typename val> unsigned int siguienteNumDependientes(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> ident siguienteSuperior(const colecInterdep<ident, val>& c){
+  return c.iter->identSup->id;
+}
 
 //
-template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c);
+template<typename ident, typename val> unsigned int siguienteNumDependientes(const colecInterdep<ident, val>& c){
+  return c.iter->numDepend;
+}
+
+//
+template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c){
+  c.iter = c.iter->siguiente;
+}
 #endif //fin de agrupacion.hpp
