@@ -405,7 +405,7 @@ template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident
   if (id != super){
     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
     if(id<super){
-      while(aux != nullptr && aux->id > id){
+      while(aux != nullptr && aux->id < id){
         aux = aux->siguiente;
       }
       if(aux== nullptr && aux->id!=id){return false;}
