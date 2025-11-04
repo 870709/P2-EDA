@@ -130,6 +130,7 @@ template<typename ident, typename val> bool obtenerSupervisor(const colecInterde
 //
 template<typename ident, typename val> bool obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?);
 
+template<typename ident, typename val> bool obtenerInfo(const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO);
 //
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id);
 
@@ -176,6 +177,7 @@ struct colecInterdep{
   friend bool obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& val?);
   friend bool obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id, ident& id?);
   friend bool obtenerNumDependientes <ident, val> (const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?);
+  friend bool obtenerInfo <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO);
   friend bool borrar <ident, val> (colecInterdep<ident, val>& c, const ident& id);
   friend void iniciarIterador <ident, val> ( colecInterdep<ident, val>& c);
   friend bool existeSiguiente <ident, val> (const colecInterdep<ident, val>& c);
@@ -523,6 +525,19 @@ template<typename ident, typename val> bool obtenerNumDependientes(const colecIn
     aux = aux->siguiente;
   }
   if(aux == nullptr || id!=aux->id){return false;}
+  NumDepO=aux->numDepend;
+  return true;
+}
+
+template<typename ident, typename val> bool obtenerInfo(const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  if(aux == nullptr || id!=aux->id){return false;}
+  valO=aux->valor;
+  if(aux->identSup!=nullptr){idO=aux->identSup->id;depen=true;}
+   else{depen=false;}
   NumDepO=aux->numDepend;
   return true;
 }
