@@ -316,7 +316,7 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
  en funcion de los ordenes de las identidades al saber que la lista esta ordenada, buscando primero al menor y posteriormente al siguiente.
   Donde a la vez que buscamos que se cumpla la existencia el hueco del nodo a introducir y el dato del que dependerá, dejaremos un puntero guardando esta hubicación que permita que cuando nos aseguramos que todas las condiciones se cumplen
   hacer la reserva en memoria y asignar a este nodo un apuntado al dependiente ...
-
+Busqueda desde un nodo atras para el hueco... para el padre desde el mismo nodo...
 */
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
  //En caso de ser vacia ni empezamos, abortamos al saber que no estará el dato del que queremos depender. 
