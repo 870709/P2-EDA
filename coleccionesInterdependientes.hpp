@@ -1,5 +1,6 @@
 /* Nombre, apellidos y NIP del (de los) autor(es).
 */
+#include <iostream>
 
 #ifndef _EVENTOS_HPP
 #define _EVENTOS_HPP
@@ -701,7 +702,7 @@ template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ide
     aux = aux->siguiente;
   }
   //despues del recorrido aux es puntero al id(si existe) o al elemento siguiente(en este caso id no existe)
-  if(aux-> id == id){
+  if(aux-> id == id && aux->identSup != nullptr){
     aux->identSup->numDepend--;
     aux->identSup = nullptr;
     return true;
@@ -716,6 +717,7 @@ template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, v
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
+  if(aux == nullptr || id!=aux->id){return false;}
   aux->val = nuevo;
   return true;
 }
@@ -725,7 +727,8 @@ template<typename ident, typename val> val obtenerVal(const colecInterdep<ident,
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
-  }
+  }if(aux == nullptr || id!=aux->id){return false;}
+
   return aux->valor;
 }
 
