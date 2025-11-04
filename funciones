@@ -1,0 +1,59 @@
+#include <fstream>
+#include <string>
+#include "colecInterdep.hpp" // Tu cabecera de colección
+#include "evento.hpp"       // Tu cabecera de evento
+
+using namespace std;
+
+/**
+ * Procesa la instrucción 'O' (Obtener) de forma EFICIENTE.
+ * Utiliza la operación 'obtenerInfo' del TAD para realizar una única
+ * búsqueda y recuperar toda la información del evento.
+ */
+bool obtenerInfoEvento(ifstream& f, ofstream& g, colecInterdep<string, Evento>& coleccion) {
+    
+    string id;
+    getline(f, id); // Leer el nombre del evento a obtener
+
+    // Variables para guardar toda la información devuelta por el TAD
+    Evento evento;
+    bool esDependiente;
+    string supervisor;   // Solo será válido si esDependiente es true
+    unsigned int numDep;
+
+    // 1. Llamar a la operación "todo en uno"
+    // Esta función busca el 'id' y, si lo encuentra (true),
+    // rellena 'evento', 'esDependiente', 'supervisor' y 'numDep'.
+    if (obtenerInfo(coleccion, id, evento, esDependiente, supervisor, numDep)) {
+        
+        // 2. El elemento fue encontrado. Extraer datos del evento.
+        string desc = descripcion(evento);
+        unsigned int prio = prioridad(evento);
+
+        g << "LOCALIZADO: ";
+
+        // 3. Comprobar el booleano devuelto (no hace falta volver a buscar)
+        if (esDependiente) {
+            
+            // Es dependiente: [ nombre -de-> nomSup ;;; NumDepend ] --- descrip --- ( prioridad )
+            // Usamos 'supervisor' y 'numDep' devueltos por obtenerInfo
+            g << "[ " << id << " -de-> " << supervisor << " ;;; " << numDep << " ] --- "
+              << desc << " --- ( " << prio << " )" << endl;
+        
+        } else {
+            
+            // Es independiente: [ nombre --- NumDepend ] --- descrip --- ( prioridad )
+            // Usamos 'numDep' devuelto por obtenerInfo
+            g << "[ " << id << " --- " << numDep << " ] --- "
+              << desc << " --- ( " << prio << " )" << endl;
+        }
+        
+        return true; // Se localizó
+
+    } else {
+        
+        // 4. Si obtenerInfo devuelve false, no existe
+        g << "NO LOCALIZADO: " << id << endl;
+        return false; // No se localizó
+    }
+}
