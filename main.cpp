@@ -92,31 +92,27 @@ void procesarB(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
 
 
 /**
- * Procesa la instrucción 'LD' (Listar Dependientes).
- * Lee un 'id' de 'f'.
+ * Procesa la instrucción 'LD' (Listar Dependientes) - ADAPTADA A TU ITERADOR.
  * 1. Busca el evento 'id' y lista sus detalles.
  * 2. Itera por TODA la colección y lista los detalles de cualquier
  * evento que sea directamente dependiente de 'id'.
- * Utiliza el iterador del TAD como es obligatorio.
  */
 void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     string id;
     getline(f, id);
     g << "****DEPENDIENTES: " << id << endl;
 
-    // --- 1. Buscar y mostrar el evento "padre" ---
+    // --- 1. Buscar y mostrar el evento "padre" (Sin cambios) ---
     Evento eventoPadre;
     bool esDepPadre;
     string superPadre;
-    unsigned int numDepPadre;
+    unsigned int numDepPadre; 
 
-    // Usamos 'obtenerInfo' para la eficiencia (1 sola búsqueda)
     if (!obtenerInfo(c, id, eventoPadre, esDepPadre, superPadre, numDepPadre)) {
         g << "****DESCONOCIDO" << endl;
-        return; // El evento no existe, terminamos
+        return; 
     }
 
-    // El evento existe. Mostramos sus datos.
     string descPadre = descripcion(eventoPadre);
     unsigned int prioPadre = prioridad(eventoPadre);
 
@@ -128,35 +124,44 @@ void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
           << descPadre << " --- ( " << prioPadre << " ) ****" << endl;
     }
 
-    // --- 2. Iterar por toda la colección buscando hijos ---
+    // --- 2. Iterar por toda la colección buscando hijos (CON CAMBIOS) ---
     iniciarIterador(c);
-    int contadorHijos = 1; // Para el 'p' del formato de salida
+    int contadorHijos = 1; 
 
+    // Asumiendo que has corregido: return c.iter != nullptr;
     while (existeSiguiente(c)) {
         bool esDepHijo = siguienteDependiente(c);
         
-        // Comprobamos si el elemento actual es dependiente Y si su supervisor es 'id'
-        if (esDepHijo && siguienteSuperior(c) == id) {
+        // Comprobar si el elemento actual es dependiente
+        if (esDepHijo) {
+            string supervisorHijo;
+            siguienteSuperior(c, supervisorHijo); // Obtener supervisor
             
-            // ¡Encontramos un hijo! Obtenemos todos sus datos
-            string idHijo = siguienteIdent(c);
-            Evento eventoHijo = siguienteVal(c);
-            unsigned int numDepHijo = siguienteNumDependientes(c);
-            string descHijo = descripcion(eventoHijo);
-            unsigned int prioHijo = prioridad(eventoHijo);
+            // Comprobar si es dependiente del 'id' que buscamos
+            if (supervisorHijo == id) {
+                
+                // ¡Encontramos un hijo! Obtenemos todos sus datos
+                string idHijo;
+                siguienteIdent(c, idHijo);
+                
+                Evento eventoHijo;
+                siguienteVal(c, eventoHijo);
+                
+                int numDepHijo; // Uso 'int' para coincidir con tu firma
+                siguienteNumDependientes(c, numDepHijo);
+                
+                string descHijo = descripcion(eventoHijo);
+                unsigned int prioHijo = prioridad(eventoHijo);
 
-            // La especificación de salida para el hijo es confusa.
-            // Pide formato indep/dep, pero un hijo DEBE ser dependiente.
-            // Asumimos que se refiere al formato del hijo (que es dependiente de 'id').
-            
-            g << "[" << contadorHijos << " -> " << idHijo << " -de-> " << id 
-              << " ;;; " << numDepHijo << " ] --- "
-              << descHijo << " --- ( " << prioHijo << " ) ;;;;" << endl;
-            
-            contadorHijos++;
+                g << "[" << contadorHijos << " -> " << idHijo << " -de-> " << id 
+                  << " ;;; " << numDepHijo << " ] --- "
+                  << descHijo << " --- ( " << prioHijo << " ) ;;;;" << endl;
+                
+                contadorHijos++;
+            }
         }
         
-        avanza(c); // Avanzamos al siguiente elemento de la colección
+        avanza(c); // Asumo que esta función existe
     }
 
     g << "****FINAL dependientes -de-> " << id << endl;
@@ -164,30 +169,41 @@ void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
 
 
 /**
- * Procesa la instrucción 'LT' (Listar Todos).
- * Muestra el tamaño total de 'c'.
+ * Procesa la instrucción 'LT' (Listar Todos) - ADAPTADA A TU ITERADOR.
  * Itera por toda la colección 'c' en orden y muestra los
  * detalles de CADA evento, usando el formato correcto (dep/indep).
- * Utiliza el iterador del TAD como es obligatorio.
  */
-void procesarLT(ofstream& g, colecInterdep<string, Evento>& c) {
+void procesarLT(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     g << "-----LISTADO: " << tamanyo(c) << endl;
     
     iniciarIterador(c);
-    while (existeSiguiente(c)) {
+    
+    // Asumiendo que has corregido: return c.iter != nullptr;
+    while (existeSiguiente(c)) { 
         
-        // Obtenemos todos los datos del elemento actual
-        string id = siguienteIdent(c);
-        Evento evento = siguienteVal(c);
-        bool esDep = siguienteDependiente(c);
-        unsigned int numDep = siguienteNumDependientes(c);
+        // 1. Declarar variables para guardar los datos
+        string id;
+        Evento evento;
+        int numDep; // Uso 'int' para coincidir con tu nueva firma
         
+        // 2. Llamar a las funciones por referencia
+        siguienteIdent(c, id);
+        siguienteVal(c, evento);
+        siguienteNumDependientes(c, numDep); 
+        
+        // 3. Obtener el resto de datos
+        bool esDep = siguienteDependiente(c); // Esta firma no cambió
         string desc = descripcion(evento);
-        unsigned int prio = prioridad(evento);
+        unsigned int prio = prioridad(evento); // 'prioridad' sigue siendo unsigned
 
-        // Imprimimos con el formato adecuado
+        // 4. Imprimir
         if (esDep) {
-            string supervisor = siguienteSuperior(c);
+            string supervisor;
+            // La llamada es segura porque está dentro de 'if (esDep)'
+            // y tu 'siguienteDependiente' comprueba 'identSup != nullptr'
+            // (¡O DEBERÍA! Mi corrección 2 es más segura)
+            siguienteSuperior(c, supervisor); 
+            
             g << "[ " << id << " -de-> " << supervisor << " ;;; " << numDep << " ] --- "
               << desc << " --- ( " << prio << " )" << endl;
         } else {
@@ -195,7 +211,7 @@ void procesarLT(ofstream& g, colecInterdep<string, Evento>& c) {
               << desc << " --- ( " << prio << " )" << endl;
         }
         
-        avanza(c); // Avanzamos al siguiente
+        avanza(c); // Asumo que esta función existe
     }
     
     g << "-----" << endl;

@@ -761,19 +761,48 @@ template<typename ident, typename val> unsigned int obtenerNumDependientes(const
   return aux->numDepend;
 }
 
-//
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id){
-
+  if(esVacia(c)){return false;}
+  if (c.primElmt->id == id) {
+    if (c.primElmt->numDepend != 0) {
+       return false;
+    }
+    if (c.primElmt->identSup != nullptr) {
+      c.primElmt->identSup->numDepend--;
+    }
+    typename colecInterdep<ident, val> ::Nodo* controlador = c.primElmt;
+    c.primElmt = c.primElmt->siguiente;
+    delete controlador;
+    c.numElem--;
+    return true;
+  }
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux->siguiente != nullptr && aux->siguiente->id < id){
+    aux = aux->siguiente;
+  }
+  if(aux->siguiente == nullptr || aux->siguiente->id!=id || aux->siguiente->numDepend!=0){return false;}
+  typename colecInterdep<ident, val> ::Nodo* controlador = aux->siguiente;
+  if (controlador->identSup != nullptr) {
+        controlador->identSup->numDepend--;
+  }
+  aux->siguiente=controlador->siguiente;
+  delete(controlador);
+  c.numElem--;
+  return true;
 }
 //ITERADOR
 //
 template<typename ident, typename val> bool iniciarIterador( colecInterdep<ident, val>& c){
-  c.iter = c.primElmt;
+  if(c.iter != nullptr){
+      c.iter = c.primElmt;
+  }
+
+  return true;
 }
 
 //
 template<typename ident, typename val> bool existeSiguiente(const colecInterdep<ident, val>& c){
-  return c.iter == nullptr;
+  return c.iter != nullptr;
 }
 
 //OJO precondicion!!!! Parcial: la operación no está definida si no quedan elementos por visitar (no existeSiguiente?(c))}
@@ -801,7 +830,7 @@ template<typename ident, typename val> bool siguienteDependiente(const colecInte
 
 //
 template<typename ident, typename val> bool siguienteSuperior(const colecInterdep<ident, val>& c, ident &sig){
-  if(c.iter !=nullptr){
+  if(c.iter !=nullptr && c.iter->identSup != nullptr){
     sig = c.iter->identSup->id;
     return true;
   }return false;
