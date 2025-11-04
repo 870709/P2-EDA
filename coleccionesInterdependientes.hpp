@@ -44,13 +44,13 @@ template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ide
 template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
 
 //
-template<typename ident, typename val> val obtenerVal(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool obtenerVal(const colecInterdep<ident, val>& c, const ident& id, val& val?);
 
 //
-template<typename ident, typename val> ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id, ident& id?);
 
 //
-template<typename ident, typename val> unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?);
 
 //
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id);
@@ -95,9 +95,9 @@ struct colecInterdep{
   friend bool hacerDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const ident& super);
   friend bool hacerIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id);
   friend bool actualizarVal <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
-  friend val obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
-  friend ident obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
-  friend unsigned int obtenerNumDependientes <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  friend bool obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& val?);
+  friend bool obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id, ident& id?);
+  friend bool obtenerNumDependientes <ident, val> (const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?);
   friend bool borrar <ident, val> (colecInterdep<ident, val>& c, const ident& id);
   friend void iniciarIterador <ident, val> ( colecInterdep<ident, val>& c);
   friend bool existeSiguiente <ident, val> (const colecInterdep<ident, val>& c);
@@ -411,31 +411,37 @@ template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, v
   return true;
 }
 
-//pre: existe
-template<typename ident, typename val> val obtenerVal(const colecInterdep<ident, val>& c, const ident& id){
+//
+template<typename ident, typename val> bool obtenerVal(const colecInterdep<ident, val>& c, const ident& id, val& val?){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
-  return aux->valor;
+  if(aux == nullptr || id!=aux->id){return false;}
+  val?=aux->valor;
+  return true;
 }
 
 //pre: existe y es dependiente!!!!
-template<typename ident, typename val> ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id){
+template<typename ident, typename val> bool obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id, ident& id?){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
-  return aux->identSup->id;
+  if(aux == nullptr || id!=aux->id || aux->identSup!=nullptr){return false;}
+  id?=aux->identSup->id;
+  return true;
 }
 
 //pre: existe!!!!
-template<typename ident, typename val> unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id){
+template<typename ident, typename val> bool obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
-  return aux->numDepend;
+  if(aux == nullptr || id!=aux->id){return false;}
+  NumDep?=aux->numDepend;
+  return true;
 }
 
 //++
