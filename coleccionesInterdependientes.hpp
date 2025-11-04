@@ -6,11 +6,15 @@
 #define _EVENTOS_HPP
 using namespace std;
 
+
+
 //
 template<typename ident, typename val> struct colecInterdep;
 
 template<typename ident, typename val> void escribir(colecInterdep<ident, val>& c);
 
+
+template<typename ident, typename val> bool obtenerInfo(const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO);
 //
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c);
 
@@ -59,28 +63,28 @@ template<typename ident, typename val> unsigned int obtenerNumDependientes(const
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id);
 
 //
-template<typename ident, typename val> void iniciarIterador( colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool iniciarIterador( colecInterdep<ident, val>& c);
 
 //
 template<typename ident, typename val> bool existeSiguiente(const colecInterdep<ident, val>& c);
 
 // 
-template<typename ident, typename val> ident siguienteIdent(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool siguienteIdent(const colecInterdep<ident, val>& c, ident &sig);
 
 // 
-template<typename ident, typename val> val siguienteVal(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool siguienteVal(const colecInterdep<ident, val>& c, val& sig);
 
 // 
 template<typename ident, typename val> bool siguienteDependiente(const colecInterdep<ident, val>& c);
 
 //
-template<typename ident, typename val> ident siguienteSuperior(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool siguienteSuperior(const colecInterdep<ident, val>& c, ident &sig);
 
 //
-template<typename ident, typename val> unsigned int siguienteNumDependientes(const colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool siguienteNumDependientes(const colecInterdep<ident, val>& c, int &num);
 
 //
-template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c);
+template<typename ident, typename val> bool avanza(colecInterdep<ident, val>& c);
 // FIN predeclaracion del TAD GENERICO colecInterdep (Fin INTERFAZ)
 
 // DECLARACION DEL TAD GENERICO colecInterdep
@@ -99,18 +103,21 @@ struct colecInterdep{
   friend bool hacerIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id);
   friend bool actualizarVal <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
   friend val obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
+  
   friend ident obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
   friend unsigned int obtenerNumDependientes <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
   friend bool borrar <ident, val> (colecInterdep<ident, val>& c, const ident& id);
-  friend void iniciarIterador <ident, val> ( colecInterdep<ident, val>& c);
+  friend bool iniciarIterador <ident, val> ( colecInterdep<ident, val>& c);
   friend bool existeSiguiente <ident, val> (const colecInterdep<ident, val>& c);
-  friend ident siguienteIdent <ident, val> (const colecInterdep<ident, val>& c);
-  friend val siguienteVal <ident, val> (const colecInterdep<ident, val>& c);
+  friend bool siguienteIdent <ident, val> (const colecInterdep<ident, val>& c, ident &sig);
+  friend bool siguienteVal <ident, val> (const colecInterdep<ident, val>& c, val& sig);
   friend bool siguienteDependiente <ident, val> (const colecInterdep<ident, val>& c);
-  friend ident siguienteSuperior <ident, val> (const colecInterdep<ident, val>& c);
-  friend unsigned int siguienteNumDependientes <ident, val> (const colecInterdep<ident, val>& c);
-  friend void avanza <ident, val> (colecInterdep<ident, val>& c);
+  friend bool siguienteSuperior <ident, val> (const colecInterdep<ident, val>& c, ident &sig);
+  friend bool siguienteNumDependientes <ident, val> (const colecInterdep<ident, val>& c, int &num);
+  friend bool avanza <ident, val> (colecInterdep<ident, val>& c);
+
   friend void escribir<ident, val>(colecInterdep<ident, val>& c);
+  friend bool obtenerInfo <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO);
 
   private: 
     struct Nodo {
@@ -718,7 +725,7 @@ template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, v
     aux = aux->siguiente;
   }
   if(aux == nullptr || id!=aux->id){return false;}
-  aux->val = nuevo;
+  aux->valor = nuevo;
   return true;
 }
 
@@ -760,7 +767,7 @@ template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c,
 }
 //ITERADOR
 //
-template<typename ident, typename val> void iniciarIterador( colecInterdep<ident, val>& c){
+template<typename ident, typename val> bool iniciarIterador( colecInterdep<ident, val>& c){
   c.iter = c.primElmt;
 }
 
@@ -816,5 +823,21 @@ template<typename ident, typename val> bool avanza(colecInterdep<ident, val>& c)
   }return false;
   
 }
+
+
+
+template<typename ident, typename val> bool obtenerInfo(const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO){
+  typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  if(aux == nullptr || id!=aux->id){return false;}
+  valO=aux->valor;
+  if(aux->identSup!=nullptr){idO=aux->identSup->id;depen=true;}
+   else{depen=false;}
+  NumDepO=aux->numDepend;
+  return true;
+}
+
 #endif
 
