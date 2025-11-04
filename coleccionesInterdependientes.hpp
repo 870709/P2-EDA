@@ -767,13 +767,21 @@ template<typename ident, typename val> bool existeSiguiente(const colecInterdep<
 }
 
 //OJO precondicion!!!! Parcial: la operación no está definida si no quedan elementos por visitar (no existeSiguiente?(c))}
-template<typename ident, typename val> ident siguienteIdent(const colecInterdep<ident, val>& c){
-  return c.iter -> id;
+template<typename ident, typename val> bool siguienteIdent(const colecInterdep<ident, val>& c, ident &sig){
+  if(c.iter !=nullptr){
+    sig = c.iter -> id;
+    return true;
+  }return false;
+  
+  
 }
 
 // 
-template<typename ident, typename val> val siguienteVal(const colecInterdep<ident, val>& c){
-  return c.iter -> valor;
+template<typename ident, typename val> bool siguienteVal(const colecInterdep<ident, val>& c, val& sig){
+  if(c.iter !=nullptr){
+    sig = c.iter -> valor;
+    return true;
+  }return false;
 }
 
 // 
@@ -782,18 +790,28 @@ template<typename ident, typename val> bool siguienteDependiente(const colecInte
 }
 
 //
-template<typename ident, typename val> ident siguienteSuperior(const colecInterdep<ident, val>& c){
-  return c.iter->identSup->id;
+template<typename ident, typename val> bool siguienteSuperior(const colecInterdep<ident, val>& c, ident &sig){
+  if(c.iter !=nullptr){
+    sig = c.iter->identSup->id;
+    return true;
+  }return false;
 }
 
 //
-template<typename ident, typename val> unsigned int siguienteNumDependientes(const colecInterdep<ident, val>& c){
-  return c.iter->numDepend;
+template<typename ident, typename val> bool siguienteNumDependientes(const colecInterdep<ident, val>& c, int &num){
+  if(c.iter !=nullptr){
+    num= c.iter->numDepend;
+    return true;
+  }return false;
 }
 
 //
-template<typename ident, typename val> void avanza(colecInterdep<ident, val>& c){
-  c.iter = c.iter->siguiente;
+template<typename ident, typename val> bool avanza(colecInterdep<ident, val>& c){
+  if(c.iter !=nullptr){
+    c.iter = c.iter->siguiente;
+    return true;
+  }return false;
+  
 }
 #endif
 
