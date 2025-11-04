@@ -1,11 +1,52 @@
-/* Nombre, apellidos y NIP del (de los) autor(es).
+/*Módulo que implementa el TAD colecciones interdependientes con memoria dinámica.
+Enrique José Guarás Lacasta (870709) y Anastasia Shlyk (931807)
 */
 
 #ifndef _EVENTOS_HPP
 #define _EVENTOS_HPP
 using namespace std;
 
-//
+/* INICIO DE LA PARTE PÚBLICA o INTERFAZ  */
+
+/* Los valores del TAD representan colecciones de elementos formados como tuplas
+de la forma (ident, val, -, NumDepend) o bien (ident, val, identSup, NumDepend). A los elementos
+con forma (ident, val, -, NumDepend) los llamaremos en general ‘elementos independientes’,
+mientras que a los elementos con forma (ident, val, identSup, NumDepend), los llamaremos en
+general ‘elementos dependientes’. En la colección no podrá haber dos elementos con el mismo
+ident.
+En las tuplas que representan elementos dependientes, la información identSup será la
+1identificación del elemento del que es directamente dependiente el elemento con identificación
+ident. Ningún elemento de la colección podrá ser directamente dependiente de sí mismo, y todo
+elemento dependiente debe serlo de otro elemento que exista en la colección (que a su vez puede
+ser un elemento independiente o dependiente).
+En cada elemento, la información NumDepend de su tupla representará el número total de elementos
+en la colección que son directamente dependientes del elemento con identificador ident, y que
+será 0 si ningún elemento de la colección depende de dicho elemento.}
+
+
+   Esta implementacion cuenta con implementaciones con coste constante siendo: crear, tamanyo, esVacia, y las operaciones del iterador. 
+   Por otra parte, , , , ,  y borrar tendrán coste O(N) siendo, N el número de elementos en la colección (lista ordenada),
+   con una implementación que aprovecha que la coleccion está ordenada (en función de ident) para evitar 
+   iteraciones innecesarias en las busquedas (finalizaran cuando se encuentre un ident posterior
+   al que buscamos siempre que se pueda). 
+   Ademas de asegurarnos de no recorrer toda la estructura multiples veces de forma innecesaria para las funciones de O(N).
+   Igualmente, el coste en memoria de esta implementación será O(N).
+   
+   Por otra parte, el parámetro formal ident le exigimos estar dotado de los operadores habituales de: 
+   comparación de igualdad == , y el operador habitual de anterioridad <, que 
+   se utilizarán respectivamente en todas las operaciones de coste O(N) de coleccionMon.
+      bool operator==(const ident& id1, const ident& id2);
+      bool operator<(const ident& id1, const ident& id2);
+   ///////
+   Y tanto al parametro formal ident, como a val se les exigirá una operacion para liberar su memoria dinamica:
+   liberar, que se usara en la operacion de borrar de coleccionMon.
+      void liberar(ident& id);
+      void liberar(val& v);
+  /////////
+ */
+
+/* Operacion que crea una coleccion vacia con el primer puntero apuntando a NULL
+*/
 template<typename ident, typename val> struct colecInterdep;
 
 //
@@ -14,7 +55,8 @@ template<typename ident, typename val> void crear(colecInterdep<ident, val>& c);
 //
 template<typename ident, typename val> unsigned int tamanyo(const colecInterdep<ident, val>& c);
 
-//
+/* Devuelve true si y solo si la coleccion es vacia (no cuenta con elementos), false en caso contrario
+*/
 template<typename ident, typename val> bool esVacia(const colecInterdep<ident, val>& c);
 
 
@@ -28,16 +70,52 @@ template<typename ident, typename val> bool existeDependiente(const colecInterde
 template<typename ident, typename val> bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id);
 
 
-//
+/* Siempre y cuando no exista ya en la colección algun nodo con el mismo 'id' respecto al que vamos a introducir, 
+  esta actualiza la coleccion entrante 'c' de forma que se añade un nodo en la coleccion en la posicion en la cual se 
+  permita seguir respetando el orden de la estructura. 
+  Siendo asi que el anterior nodo de la coleccion tenga un 'id' anterior al nuevo nodo (si existe anterior) y que el 
+  siguiente nodo tenga un 'id' posterior al nodo nuevo (si existe siguiente). 
+  Para sus valores se asignaran respectivamente segun la estructura definida: (ident, val, -, NumDepend).
+    Siendo su 'ident' el 'id' pasado por referencia.
+    Lo mismo para su 'valor' con paramentro entrantre 'v'.
+    Para el 'identSup' se quedara como puntero nulo hasta nueva actualizacion al estar añadiendo un Independiente.
+    Y el numero de 'numDepend' a este nodo sera 0, al haberlo añadido ahora.
+  Aumentando asi en 1 el numero de elementos de la colección.
+  En el caso de que ya haya un nodo con ident igual a 'id', no se actualizara la coleccion entrante 'c' y se devolvera 
+  false para avisar de que no se ha añadido. Y lo mismo en caso de que no se cumplan alguna de las condiciones de paso de parametros.
+*/
 template<typename ident, typename val> bool anadirIndependiente(colecInterdep<ident, val>& c, const ident& id, const val& v);
 
-//
+/* Siempre y cuando no exista ya en la colección algun nodo con el mismo 'id' respecto al que vamos a introducir, y ya extista
+  el nodo del cual va a depender con 'id' 'super', esta actualiza la coleccion entrante 'c' de forma que se añade un nodo 
+  en la coleccion en la posicion en la cual se permita seguir respetando el orden de la estructura. 
+  Siendo asi que el anterior nodo de la coleccion tenga un 'id' anterior al nuevo nodo (si existe anterior) y que el 
+  siguiente nodo tenga un 'id' posterior al nodo nuevo (si existe siguiente). 
+  Para sus valores se asignaran respectivamente segun la estructura definida: (ident, val, identSup, NumDepend).
+    Siendo su 'ident' el 'id' pasado por referencia.
+    Lo mismo para su 'valor' con paramentro entrantre 'v'.
+    Para el 'identSup' se quedara como puntero que apunte a nodo del cual dependerá con el 'id' 'super'.
+    Y el numero de 'numDepend' a este nodo sera 0, al haberlo añadido ahora.
+  Aumentando asi en 1 el numero de elementos de la colección.
+  En el caso de que ya haya un nodo con ident igual a 'id' o no exista un nodo con 'id' 'super' , no se actualizara la coleccion entrante 'c' 
+  y se devolvera false para avisar de que no se ha añadido. 
+  Y lo mismo en caso de que no se cumplan alguna de las condiciones de paso de parametros.
+*/
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
 
-//
+/* Siempre y cuando exista ya en la colección algun nodo con el mismo 'id', y ya extista el nodo del cual va a depender 
+  con 'id' 'super', esta actualiza la coleccion entrante 'c' de forma que modifica los parametros del nodo 'id', 'super' y el antiguo dependiente del nodo 'id' (en caso de tenerlo). 
+  Haciendo asi que el parametro 'identSuper' del nodo 'id' apunte al nodo con 'id''super' y aumentando en este mismo su 'numDependientes' en 1.
+  Y en caso de que previamente este ya apuntara a uno, decrementar su 'numDependientes' en 1. Haciendo asi que la función devuelva true.
+  Y devolvera false en caso contrario.
+  */
 template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
 
-//
+/* Siempre y cuando exista ya en la colección algun nodo con el mismo 'id' dependiente, siendo asi que su 'identSuper'!=nullptr al apuntar ya a algun otro nodo existente
+   esta actualiza la coleccion entrante 'c' de forma que modifica los parametros del nodo 'id' y el antiguo dependiente del nodo 'id'. 
+  Haciendo asi que el parametro 'identSuper' del nodo 'id' no apunte a nada (nullptr) y disminuyendo en 1 su antiguo dependiente. Haciendo asi que la función devuelva true.
+  Devolviendo false en caso contrario.
+  */
 template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
 
 //
@@ -232,7 +310,12 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 }
 
 
-//++
+/* Esta implementación se basa en aplicar una busqueda en turnos, basada en la subdivisión de casos posibles. Al verficar que ninguno de ambos datos que necesitamos este al principio y iniciara una busqueda
+ en funcion de los ordenes de las identidades al saber que la lista esta ordenada, buscando primero al menor y posteriormente al siguiente.
+  Donde a la vez que buscamos que se cumpla la existencia el hueco del nodo a introducir y el dato del que dependerá, dejaremos un puntero guardando esta hubicación que permita que cuando nos aseguramos que todas las condiciones se cumplen
+  hacer la reserva en memoria y asignar a este nodo un apuntado al dependiente ...
+
+*/
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
  //En caso de ser vacia ni empezamos, abortamos al saber que no estará el dato del que queremos depender. 
   if(esVacia(c)||(id==super)){
@@ -392,7 +475,7 @@ template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ide
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
-  if(aux-> id == id){
+  if(aux-> id == id && aux->identSup!=nullptr){
     aux->identSup->numDepend--;
     aux->identSup = nullptr;
     return true;
@@ -412,35 +495,35 @@ template<typename ident, typename val> bool actualizarVal(colecInterdep<ident, v
 }
 
 //
-template<typename ident, typename val> bool obtenerVal(const colecInterdep<ident, val>& c, const ident& id, val& val?){
+template<typename ident, typename val> bool obtenerVal(const colecInterdep<ident, val>& c, const ident& id, val& valO){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   if(aux == nullptr || id!=aux->id){return false;}
-  val?=aux->valor;
+  valO=aux->valor;
   return true;
 }
 
 //pre: existe y es dependiente!!!!
-template<typename ident, typename val> bool obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id, ident& id?){
+template<typename ident, typename val> bool obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id, ident& idO){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   if(aux == nullptr || id!=aux->id || aux->identSup!=nullptr){return false;}
-  id?=aux->identSup->id;
+  idO=aux->identSup->id;
   return true;
 }
 
 //pre: existe!!!!
-template<typename ident, typename val> bool obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDep?){
+template<typename ident, typename val> bool obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id, unsigned int& NumDepO){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
   while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   if(aux == nullptr || id!=aux->id){return false;}
-  NumDep?=aux->numDepend;
+  NumDepO=aux->numDepend;
   return true;
 }
 
