@@ -250,3 +250,150 @@ void procesarLT(ofstream& g, colecInterdep<string, Evento>& c) {
     
     g << "-----" << endl;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+parche
+
+/**
+ * Procesa la instrucción 'LT' (Listar Todos) - ADAPTADA A TU ITERADOR.
+ * Itera por toda la colección 'c' en orden y muestra los
+ * detalles de CADA evento, usando el formato correcto (dep/indep).
+ */
+void procesarLT(ofstream& g, colecInterdep<string, Evento>& c) {
+    g << "-----LISTADO: " << tamanyo(c) << endl;
+    
+    iniciarIterador(c);
+    
+    // Asumiendo que has corregido: return c.iter != nullptr;
+    while (existeSiguiente(c)) { 
+        
+        // 1. Declarar variables para guardar los datos
+        string id;
+        Evento evento;
+        int numDep; // Uso 'int' para coincidir con tu nueva firma
+        
+        // 2. Llamar a las funciones por referencia
+        siguienteIdent(c, id);
+        siguienteVal(c, evento);
+        siguienteNumDependientes(c, numDep); 
+        
+        // 3. Obtener el resto de datos
+        bool esDep = siguienteDependiente(c); // Esta firma no cambió
+        string desc = descripcion(evento);
+        unsigned int prio = prioridad(evento); // 'prioridad' sigue siendo unsigned
+
+        // 4. Imprimir
+        if (esDep) {
+            string supervisor;
+            // La llamada es segura porque está dentro de 'if (esDep)'
+            // y tu 'siguienteDependiente' comprueba 'identSup != nullptr'
+            // (¡O DEBERÍA! Mi corrección 2 es más segura)
+            siguienteSuperior(c, supervisor); 
+            
+            g << "[ " << id << " -de-> " << supervisor << " ;;; " << numDep << " ] --- "
+              << desc << " --- ( " << prio << " )" << endl;
+        } else {
+            g << "[ " << id << " --- " << numDep << " ] --- "
+              << desc << " --- ( " << prio << " )" << endl;
+        }
+        
+        avanza(c); // Asumo que esta función existe
+    }
+    
+    g << "-----" << endl;
+}
+
+
+
+
+
+/**
+ * Procesa la instrucción 'LD' (Listar Dependientes) - ADAPTADA A TU ITERADOR.
+ * 1. Busca el evento 'id' y lista sus detalles.
+ * 2. Itera por TODA la colección y lista los detalles de cualquier
+ * evento que sea directamente dependiente de 'id'.
+ */
+void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+    string id;
+    getline(f, id);
+    g << "****DEPENDIENTES: " << id << endl;
+
+    // --- 1. Buscar y mostrar el evento "padre" (Sin cambios) ---
+    Evento eventoPadre;
+    bool esDepPadre;
+    string superPadre;
+    unsigned int numDepPadre; 
+
+    if (!obtenerInfo(c, id, eventoPadre, esDepPadre, superPadre, numDepPadre)) {
+        g << "****DESCONOCIDO" << endl;
+        return; 
+    }
+
+    string descPadre = descripcion(eventoPadre);
+    unsigned int prioPadre = prioridad(eventoPadre);
+
+    if (esDepPadre) {
+        g << "[ " << id << " -de-> " << superPadre << " ;;; " << numDepPadre << " ] --- "
+          << descPadre << " --- ( " << prioPadre << " ) ****" << endl;
+    } else {
+        g << "[ " << id << " --- " << numDepPadre << " ] --- "
+          << descPadre << " --- ( " << prioPadre << " ) ****" << endl;
+    }
+
+    // --- 2. Iterar por toda la colección buscando hijos (CON CAMBIOS) ---
+    iniciarIterador(c);
+    int contadorHijos = 1; 
+
+    // Asumiendo que has corregido: return c.iter != nullptr;
+    while (existeSiguiente(c)) {
+        bool esDepHijo = siguienteDependiente(c);
+        
+        // Comprobar si el elemento actual es dependiente
+        if (esDepHijo) {
+            string supervisorHijo;
+            siguienteSuperior(c, supervisorHijo); // Obtener supervisor
+            
+            // Comprobar si es dependiente del 'id' que buscamos
+            if (supervisorHijo == id) {
+                
+                // ¡Encontramos un hijo! Obtenemos todos sus datos
+                string idHijo;
+                siguienteIdent(c, idHijo);
+                
+                Evento eventoHijo;
+                siguienteVal(c, eventoHijo);
+                
+                int numDepHijo; // Uso 'int' para coincidir con tu firma
+                siguienteNumDependientes(c, numDepHijo);
+                
+                string descHijo = descripcion(eventoHijo);
+                unsigned int prioHijo = prioridad(eventoHijo);
+
+                g << "[" << contadorHijos << " -> " << idHijo << " -de-> " << id 
+                  << " ;;; " << numDepHijo << " ] --- "
+                  << descHijo << " --- ( " << prioHijo << " ) ;;;;" << endl;
+                
+                contadorHijos++;
+            }
+        }
+        
+        avanza(c); // Asumo que esta función existe
+    }
+
+    g << "****FINAL dependientes -de-> " << id << endl;
+}
