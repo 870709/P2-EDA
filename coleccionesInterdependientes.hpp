@@ -8,6 +8,8 @@ using namespace std;
 //
 template<typename ident, typename val> struct colecInterdep;
 
+template<typename ident, typename val> void escribir(colecInterdep<ident, val>& c);
+
 //
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c);
 
@@ -107,6 +109,7 @@ struct colecInterdep{
   friend ident siguienteSuperior <ident, val> (const colecInterdep<ident, val>& c);
   friend unsigned int siguienteNumDependientes <ident, val> (const colecInterdep<ident, val>& c);
   friend void avanza <ident, val> (colecInterdep<ident, val>& c);
+  friend void escribir<ident, val>(colecInterdep<ident, val>& c);
 
   private: 
     struct Nodo {
@@ -127,6 +130,13 @@ template<typename ident, typename val> void crear(colecInterdep<ident, val>& c){
     c.primElmt = nullptr;
     c.numElem=0;
 }
+template<typename ident, typename val> void escribir(colecInterdep<ident, val>& c){
+  typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+  for(int i = 0; i< c.numElem; i++){
+    cout << aux->id << " "<< aux->numDepend<<endl;
+    aux = aux->siguiente; 
+  }
+}
 
 //
 template<typename ident, typename val> unsigned int tamanyo(const colecInterdep<ident, val>& c){
@@ -143,38 +153,79 @@ template<typename ident, typename val> bool esVacia(const colecInterdep<ident, v
 
 //(Divide y venceras en lista ordenada no se debe de poder, pararemos cuando el id actual sea mayor al que estamos buscando o si ya no quedan elementos que explorar. Intentar jugar con como recorrer el orden de la lista o busquedas bidireccionales para reducir coste en tiempo no tiene sentido al no ser ni doble enlazada.)
 template<typename ident, typename val> bool existe(const colecInterdep<ident, val>& c, const ident& id){
-  if(esVacia(c)){
-    return false;
-  }else{
-    typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
-    while(aux != nullptr && aux->id <= id){
-      if(aux->id == id){
-        return true;
-      }
-      aux = aux->siguiente;
-    }
-    return false;
+  typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
   }
+  if(aux != nullptr && aux->id == id){
+    return true;
+  }
+  return false;
 }
 
 //
+// template<typename ident, typename val> bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id){
+//   if(esVacia(c)){
+//     return false;
+//   }else{
+//     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+//     while(aux != nullptr && aux->id <= id){
+//       if(aux->id == id && existe(c, aux->identSup)){
+//         return true;
+//       }
+//       aux = aux->siguiente;
+//     }
+//     return false;
+//   }
+// }
+
+
+// template<typename ident, typename val> bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id){
+//   if(esVacia(c)){
+//     return false;
+//   }else{
+//     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+//     while(aux != nullptr && aux->id <= id){
+//       if(aux->id == id){
+//         if (aux->identSup == nullptr){
+//           return false;
+//         }else{
+//           return true;
+//         }
+//       }
+//       aux = aux->siguiente;
+//     }
+//     return false;
+//   }
+// }
+
+
+
+
 template<typename ident, typename val> bool existeDependiente(const colecInterdep<ident, val>& c, const ident& id){
-  if(esVacia(c)){
-    return false;
-  }else{
-    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-    while(aux != nullptr && aux->id <= id){
-      if(aux->id == id && existe(c, aux->identSup)){
-        return true;
-      }
-      aux = aux->siguiente;
-    }
-    return false;
+  typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
   }
+  if(aux != nullptr && aux->id == id && aux->identSup != nullptr){
+    cout << aux->id << endl;
+    return true;
+  }
+  return false;
 }
 
 //
-template<typename ident, typename val> bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> bool existeIndependiente(const colecInterdep<ident, val>& c, const ident& id){
+    typename colecInterdep<ident, val>::Nodo* aux = c.primElmt;
+  while(aux != nullptr && aux->id < id){
+    aux = aux->siguiente;
+  }
+  if(aux != nullptr && aux->id == id && aux->identSup == nullptr){
+    return true;
+  }
+  return false;
+}
+
 
 
 //
@@ -210,7 +261,7 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     //ya podemos empezar la busqueda real
     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
     //vamos a jugar desde el nodo anterior para poder meterlo justo despues
-    while(aux->siguiente != nullptr && aux->siguiente->id > id){
+    while(aux->siguiente != nullptr && aux->siguiente->id < id){
       aux = aux->siguiente;
     } 
       if(aux->siguiente != nullptr && aux->siguiente->id==id){//ya existe no podemos añadirlo
@@ -229,62 +280,181 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
     }
 }
 
-
-
-
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
-  if(id != super){
-    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, *sup = nullptr, *hueco = nullptr;
-    ident max; 
-    if(id > super){
-      max = id;
-    }else{
-      max = super;
-    }
-     // en un recorrido de la colección confirmamos que no existe el nodo con ident id, guardamos el puntero al nodo con ident super. Recorremos solo 
-    while(aux != nullptr && aux->id <= max){
-      //confirmamos que no exista el nodo id 
-      if(aux->id == id){
-        return false;
-      }else if(aux->id == super){
-        sup = aux;
-        cout << "encontrado el sup" << endl;
+ //En caso de ser vacia ni empezamos, abortamos al saber que no estará el dato del que queremos depender. 
+  if(esVacia(c)||(id==super)){
+    return false; 
+//Sabemos que no es vacia, empezaremos con la busqueda
+  }else{
+    //Comprovamos si fuera en la primera posición, obligatorio puesto que la busqueda posterior no lo verifica.
+      if (c.primElmt->id == id) {
+          return false;//Si ya esta el dato abortamos.
       }
-      aux = aux->siguiente;
-    }
-    if(sup != nullptr){
-      sup->numDepend++;
-
-      typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
-      nuevo->id = id;
-      nuevo->valor = v;
-      nuevo->identSup = sup;
-      nuevo->numDepend = 0;
-      nuevo->siguiente = nullptr;
-
-      //id del nuevo es menor que el del primer nodo
-      if(id < c.primElmt->id){
-        nuevo->siguiente = c.primElmt;
-        c.primElmt = nuevo;
-        c.numElem += 1;
+    //1. En caso de si ser el padre el primer elemento solo faltará encontrar el hueco del dato a introducir, siempre y cuando este no exista ya.
+      else if (c.primElmt->id == super) {
+        //Caso de que el elemento nuevo vaya como primer elemento de lista
+          if(id<super){
+            typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+              auxN->id=id;
+              auxN->valor=v;
+              auxN->identSup=c.primElmt;
+              c.primElmt->numDepend++;
+              auxN->numDepend = 0;
+              auxN->siguiente=c.primElmt;
+              c.primElmt = auxN;
+              c.numElem++;
+            return true;
+          }
+      //Si no se cumple la anterior verificacion empezamos la busqueda del hueco unicamente.
+      typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt; //No es necesario volver a verificar el primer elemento.
+      while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
+        auxH = auxH->siguiente;
+      }
+      if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
+      //Hemos encontrado el hueco y el padre es el primer elemento.
+        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+          auxN->siguiente=auxH->siguiente;
+          auxH->siguiente=auxN;
+          auxN->id=id;
+          auxN->valor=v;
+          auxN->identSup=c.primElmt;
+          auxN->numDepend=0;
+          c.numElem++;
+          c.primElmt->numDepend++;
         return true;
-      } else {
-        aux = c.primElmt;
-        while(aux->siguiente != nullptr && aux->siguiente->id < id){
-          aux = aux->siguiente;
+    }
+    //2. Hemos encontrado el hueco pero no al padre
+    if (c.primElmt->id > id) {
+        //En busqueda del padre
+        typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
+        while(auxP!=nullptr && auxP->id < super){
+          auxP = auxP->siguiente;
         }
-        typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
-        aux->siguiente = nuevo;
-        nuevo->siguiente = temp;
-        c.numElem += 1;
+        if(auxP==nullptr || auxP->id!=super){return false;}
+        //encontrado
+        typename colecInterdep<ident, val>::Nodo* auxH = new typename colecInterdep<ident, val>::Nodo;
+        auxH->id=id;
+        auxH->valor=v;
+        auxH->identSup=auxP;
+        auxH->numDepend = 0;
+        auxH->siguiente=c.primElmt;
+        c.primElmt = auxH;
+        c.numElem++;
+        auxP->numDepend++;
         return true;
-      }
-    }else{
-      return false;
     }
-  }
-  return false;
+    //3. Debemos buscar tanto el hueco como el antecesor.
+      //3.1 Buscar primero el hueco y luego al padre
+        if(id<super){
+        typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+          while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
+            auxH = auxH->siguiente;
+          }
+          if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
+          typename colecInterdep<ident, val> ::Nodo* auxP;
+          auxP = auxH->siguiente;
+          while(auxP!= nullptr && auxP->id < super){
+            auxP = auxP->siguiente;
+          }
+          if(auxP==nullptr || auxP->id!=super){return false;}
+          typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+            auxN->siguiente=auxH->siguiente;
+            auxH->siguiente=auxN;
+            auxN->id=id;
+            auxN->valor=v;
+            auxN->identSup=auxP;
+            auxP->numDepend++;
+            auxN->numDepend=0;
+            c.numElem++;
+            return true;
+      //3.2 Buscar primero al padre y luego al hijo
+        }else{
+            typename colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
+            while(auxP!= nullptr && auxP->id < super){
+              auxP = auxP->siguiente;
+            }
+            if(auxP==nullptr || auxP->id!=super){return false;}
+            typename colecInterdep<ident, val> ::Nodo* auxH;
+            auxH = auxP;
+            while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
+              auxH = auxH->siguiente;
+            }
+            if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
+            typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+              auxN->siguiente=auxH->siguiente;
+              auxH->siguiente=auxN;
+              auxN->id=id;
+              auxN->valor=v;
+              auxN->identSup=auxP;
+              auxP->numDepend++;
+              auxN->numDepend=0;
+              c.numElem++;
+            return true;
+          }
+    }
 }
+
+
+
+
+// template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
+//   if(id != super){
+//     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, *sup = nullptr, *hueco = nullptr;
+//     ident max; 
+//     if(id > super){
+//       max = id;
+//       cout << "recoremos hasta id"<< endl;
+//     }else{
+//       max = super;
+//       cout << "recoremos hasta super"<< endl;
+//     }
+//      // en un recorrido de la colección confirmamos que no existe el nodo con ident id, guardamos el puntero al nodo con ident super. Recorremos solo 
+//     while(aux != nullptr && aux->id <= max){
+//       //confirmamos que no exista el nodo id 
+//       if(aux->id == id){
+//         return false;
+//       }else if(aux->id == super){
+//         sup = aux;
+//         cout << "encontrado el sup su id es "<< sup->id << endl;
+
+//       }
+//       aux = aux->siguiente;
+//     }
+//     if(sup != nullptr){
+//       cout << "antes de aumentar el num de dependencias del sup" << sup->numDepend<< endl;
+//       sup->numDepend++;
+//       cout << "aumentado el num de dependencias del sup" << sup->numDepend<< endl;
+
+//       typename colecInterdep<ident, val> ::Nodo* nuevo = new typename colecInterdep<ident, val>::Nodo;
+//       nuevo->id = id;
+//       nuevo->valor = v;
+//       nuevo->identSup = sup;
+//       nuevo->numDepend = 0;
+//       nuevo->siguiente = nullptr;
+
+//       //id del nuevo es menor que el del primer nodo
+//       if(id < c.primElmt->id){
+//         nuevo->siguiente = c.primElmt;
+//         c.primElmt = nuevo;
+//         c.numElem += 1;
+//         return true;
+//       } else {
+//         aux = c.primElmt;
+//         while(aux->siguiente != nullptr && aux->siguiente->id < id){
+//           aux = aux->siguiente;
+//         }
+//         typename colecInterdep<ident, val> ::Nodo* temp = aux->siguiente;
+//         aux->siguiente = nuevo;
+//         nuevo->siguiente = temp;
+//         c.numElem += 1;
+//         return true;
+//       }
+//     }else{
+//       return false;
+//     }
+//   }
+//   return false;
+// }
 
 
 // template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
@@ -308,32 +478,73 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
 //   }
 // }
 
+template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
+    if(esVacia(c)||(id==super)){return false;}
+    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
+    if(id<super){
+      while(aux != nullptr && aux->id < id){
+        aux = aux->siguiente;
+      }
+      if(aux== nullptr || aux->id!=id){return false;}
+
+      typename colecInterdep<ident, val> ::Nodo* auxP = nullptr;
+      auxP=aux->siguiente;
+      while(auxP!= nullptr && auxP->id < super){
+        auxP = auxP->siguiente;
+      }
+      if(auxP==nullptr||auxP->id!=super){return false;}
+      if(aux->identSup != nullptr){
+        aux->identSup->numDepend--;
+      }
+        aux->identSup = auxP;
+        auxP->numDepend++;
+                return true;
+    }else{
+        typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
+        while(auxP != nullptr && auxP->id < super){
+          auxP = auxP->siguiente;
+        }
+        if(auxP== nullptr || auxP->id!=super){return false;}
+        typename colecInterdep<ident, val> ::Nodo* aux=auxP->siguiente;
+        while(aux!= nullptr && aux->id < id){
+          aux = aux->siguiente;
+        }
+         if(aux==nullptr||aux->id!=id){return false;}
+        if(aux->identSup != nullptr){
+          aux->identSup->numDepend--;
+        }
+          aux->identSup = auxP;
+          auxP->numDepend++;
+        return true;
+      }
+}
+
 
 //
-template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
-  if (id != super){
-    typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, elem = nullptr;
-    while(aux != nullptr && aux->id <= max(sup, id)){
-      if(aux->id == id){
-        elem = aux;
-      }
-      if(aux->id == super){
-        sup = aux;
-      }
-      aux = aux->siguiente;
-    }
-    if(sup != nullptr && elem != nullptr){
-      if(elem->identSup != nullptr){
-        elem->identSup->numDepend--;
-      }
-      elem->identSup = sup;
-      sup->numDepend++;
-    }else{
-      return false;
-    }
+// template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
+//   if (id != super){
+//     typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt, sup = nullptr, elem = nullptr;
+//     while(aux != nullptr && aux->id <= max(sup, id)){
+//       if(aux->id == id){
+//         elem = aux;
+//       }
+//       if(aux->id == super){
+//         sup = aux;
+//       }
+//       aux = aux->siguiente;
+//     }
+//     if(sup != nullptr && elem != nullptr){
+//       if(elem->identSup != nullptr){
+//         elem->identSup->numDepend--;
+//       }
+//       elem->identSup = sup;
+//       sup->numDepend++;
+//     }else{
+//       return false;
+//     }
 
-  }else return false;
-}
+//   }else return false;
+// }
 //version Enrique 
 // template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
 //   //no hay padre
@@ -520,17 +731,21 @@ template<typename ident, typename val> val obtenerVal(const colecInterdep<ident,
 
 //pre: existe y es dependiente!!!!
 template<typename ident, typename val> ident obtenerSupervisor(const colecInterdep<ident, val>& c, const ident& id){
+  cout << "Empezamos funcion obtener SUp"<< endl;
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-  while(aux != nullptr && aux->id <= id){
+  while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
+    cout << aux->id;
   }
-  return aux->identSup->id;
+  cout << "obtener Supervisor de " << aux->id;
+  aux = aux->identSup;
+  return aux->id;
 }
 
 //pre: existe!!!!
 template<typename ident, typename val> unsigned int obtenerNumDependientes(const colecInterdep<ident, val>& c, const ident& id){
   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-  while(aux != nullptr && aux->id <= id){
+  while(aux != nullptr && aux->id < id){
     aux = aux->siguiente;
   }
   return aux->numDepend;
@@ -540,7 +755,7 @@ template<typename ident, typename val> unsigned int obtenerNumDependientes(const
 template<typename ident, typename val> bool borrar(colecInterdep<ident, val>& c, const ident& id){
 
 }
-
+//ITERADOR
 //
 template<typename ident, typename val> void iniciarIterador( colecInterdep<ident, val>& c){
   c.iter = c.primElmt;
