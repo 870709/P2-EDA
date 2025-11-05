@@ -9,33 +9,16 @@ using namespace std;
 
 const string ID_VACIO = "-.-.-.-.-";
 
-/**
- * Procesa la instrucción 'I' (hacer Independiente).
- * Lee un 'id' de 'f'. Intenta hacerlo independiente en 'c'.
- * Escribe el resultado en 'g' según si la operación tuvo éxito,
- * si el evento ya era independiente, o si no existía.
- */
-void procesarI(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+
+void hacerIndependienteEvento(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     string id;
     getline(f, id);
-
-    // 1. Intentamos la operación. Esta función (idealmente) busca el nodo,
-    // comprueba si es dependiente y, si lo es, lo modifica.
-    // Devuelve 'true' solo si ha realizado un cambio.
     if (hacerIndependiente(c, id)) {
-        // Éxito: Se encontró y se cambió de dependiente a independiente.
         g << "INDEPENDIZADO: " << id << endl;
     } else {
-        // Fracaso: O no existe, o ya era independiente.
-        // Necesitamos una búsqueda adicional para distinguirlos.
         if (existeIndependiente(c, id)) {
-            // Se encontró, pero no hubo cambio porque ya era independiente.
             g << "YA ERA INDepend.: " << id << endl;
         } else {
-            // Si 'hacerIndependiente' falló y 'existeIndependiente' es falso,
-            // entonces el elemento no existe (o es dependiente y 'hacerIndependiente'
-            // falló por otra razón, pero "no existe" es el único caso restante
-            // según la especificación de salida).
             g << "NO INDEPENDIZADO: " << id << endl;
         }
     }
@@ -43,46 +26,30 @@ void procesarI(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
 
 
 
-/**
- * Procesa la instrucción 'D' (hacer Dependiente).
- * Lee un 'id' y un 'super' de 'f'.
- * Comprueba si AMBOS existen. Si es así, imprime "INTENTANDO" y
- * llama a la operación del TAD. Si no, imprime "IMPOSIBLE".
- */
-void procesarD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+
+void hacerDependienteEvento(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     string id, super;
     getline(f, id);
     getline(f, super);
 
-    // La especificación de salida nos obliga a comprobar la existencia primero.
     if (existe(c, id) && existe(c, super)) {
-        // Ambos existen. Informamos del intento y luego lo ejecutamos.
+
         g << "INTENTANDO hacer depend.: " << id << " -de-> " << super << endl;
-        
-        // Llamamos a la operación del TAD.
-        // No necesitamos comprobar el 'bool' de retorno,
-        // ya que la salida no informa del resultado del intento.
+
         hacerDependiente(c, id, super);
     } else {
-        // Uno o ambos no existen.
+
         g << "IMPOSIBLE hacer depend.: " << id << " -de-> " << super << endl;
     }
 }
 
 
 
-/**
- * Procesa la instrucción 'B' (Borrar).
- * Lee un 'id' de 'f'. Intenta borrarlo de 'c'.
- * El TAD 'borrar' devuelve true si tiene éxito (existe y numDepend == 0).
- * Escribe "BORRADO" o "NO BORRADO" en 'g'.
- */
-void procesarB(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+
+void borrarEvento(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     string id;
     getline(f, id);
 
-    // La lógica del TAD 'borrar' coincide con la salida requerida.
-    // 'borrar' falla si no existe O si tiene dependientes.
     if (borrar(c, id)) {
         g << "BORRADO: " << id << endl;
     } else {
@@ -90,29 +57,22 @@ void procesarB(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     }
 }
 
-
-/**
- * Procesa la instrucción 'LD' (Listar Dependientes) - ADAPTADA A TU ITERADOR.
- * 1. Busca el evento 'id' y lista sus detalles.
- * 2. Itera por TODA la colección y lista los detalles de cualquier
- * evento que sea directamente dependiente de 'id'.
- */
-void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+void listarDependientes(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     string id;
     getline(f, id);
-    g << "****DEPENDIENTES: " << id << endl;
 
-    // --- 1. Buscar y mostrar el evento "padre" (Sin cambios) ---
     Evento eventoPadre;
     bool esDepPadre;
     string superPadre;
     unsigned int numDepPadre; 
 
+
+    g << "****DEPENDIENTES: " << id << endl;
     if (!obtenerInfo(c, id, eventoPadre, esDepPadre, superPadre, numDepPadre)) {
         g << "****DESCONOCIDO" << endl;
         return; 
     }
-
+    
     string descPadre = descripcion(eventoPadre);
     unsigned int prioPadre = prioridad(eventoPadre);
 
@@ -124,94 +84,74 @@ void procesarLD(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
           << descPadre << " --- ( " << prioPadre << " ) ****" << endl;
     }
 
-    // --- 2. Iterar por toda la colección buscando hijos (CON CAMBIOS) ---
+
     iniciarIterador(c);
     int contadorHijos = 1; 
 
-    // Asumiendo que has corregido: return c.iter != nullptr;
     while (existeSiguiente(c)) {
-        bool esDepHijo = siguienteDependiente(c);
-        
-        // Comprobar si el elemento actual es dependiente
-        if (esDepHijo) {
+        if (siguienteDependiente(c)) {
             string supervisorHijo;
-            siguienteSuperior(c, supervisorHijo); // Obtener supervisor
-            
-            // Comprobar si es dependiente del 'id' que buscamos
+            siguienteSuperior(c, supervisorHijo); 
             if (supervisorHijo == id) {
-                
-                // ¡Encontramos un hijo! Obtenemos todos sus datos
                 string idHijo;
                 siguienteIdent(c, idHijo);
                 
                 Evento eventoHijo;
                 siguienteVal(c, eventoHijo);
                 
-                int numDepHijo; // Uso 'int' para coincidir con tu firma
+                int numDepHijo; 
                 siguienteNumDependientes(c, numDepHijo);
                 
                 string descHijo = descripcion(eventoHijo);
                 unsigned int prioHijo = prioridad(eventoHijo);
 
                 g << "[" << contadorHijos << " -> " << idHijo << " -de-> " << id 
-                  << " ;;; " << numDepHijo << " ] --- "
+                  << " ;;;  " << numDepHijo << " ] --- "
                   << descHijo << " --- ( " << prioHijo << " ) ;;;;" << endl;
                 
                 contadorHijos++;
             }
         }
         
-        avanza(c); // Asumo que esta función existe
+        avanza(c); 
     }
 
     g << "****FINAL dependientes -de-> " << id << endl;
 }
 
 
-/**
- * Procesa la instrucción 'LT' (Listar Todos) - ADAPTADA A TU ITERADOR.
- * Itera por toda la colección 'c' en orden y muestra los
- * detalles de CADA evento, usando el formato correcto (dep/indep).
- */
-void procesarLT(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
+void listarTodos(ifstream& f, ofstream& g, colecInterdep<string, Evento>& c) {
     g << "-----LISTADO: " << tamanyo(c) << endl;
     
     iniciarIterador(c);
-    
-    // Asumiendo que has corregido: return c.iter != nullptr;
+
     while (existeSiguiente(c)) { 
         
-        // 1. Declarar variables para guardar los datos
+
         string id;
         Evento evento;
-        int numDep; // Uso 'int' para coincidir con tu nueva firma
+        int numDep; 
         
-        // 2. Llamar a las funciones por referencia
+
         siguienteIdent(c, id);
         siguienteVal(c, evento);
         siguienteNumDependientes(c, numDep); 
-        
-        // 3. Obtener el resto de datos
-        bool esDep = siguienteDependiente(c); // Esta firma no cambió
+        bool esDep = siguienteDependiente(c); 
         string desc = descripcion(evento);
-        unsigned int prio = prioridad(evento); // 'prioridad' sigue siendo unsigned
-
-        // 4. Imprimir
+        unsigned int prio = prioridad(evento); 
         if (esDep) {
             string supervisor;
-            // La llamada es segura porque está dentro de 'if (esDep)'
-            // y tu 'siguienteDependiente' comprueba 'identSup != nullptr'
-            // (¡O DEBERÍA! Mi corrección 2 es más segura)
+
             siguienteSuperior(c, supervisor); 
             
-            g << "[ " << id << " -de-> " << supervisor << " ;;; " << numDep << " ] --- "
+            g << "[ " << id << " -de-> " << supervisor << " ;;;  " << numDep << " ] --- "
               << desc << " --- ( " << prio << " )" << endl;
         } else {
             g << "[ " << id << " --- " << numDep << " ] --- "
               << desc << " --- ( " << prio << " )" << endl;
         }
         
-        avanza(c); // Asumo que esta función existe
+        avanza(c);
     }
     
     g << "-----" << endl;
@@ -266,7 +206,7 @@ bool anadirNuevoEvento(ifstream &f,ofstream &g, colecInterdep<string, Evento>& c
       g << "INTRODUCIDO: " << "[ "<< id <<" -de-> "<< idSup <<" ] --- "<< desc << " --- ( "<<prioridad<<" )" << endl;
       return true;
     } else {
-      g << "INTRODUCIDO: " << "[ "<< id <<" -de-> "<< idSup <<" ] --- "<< desc << " --- ( "<<prioridad<<" )" << endl;
+      g << "NO INTRODUCIDO: " << "[ "<< id <<" -de-> "<< idSup <<" ] --- "<< desc << " --- ( "<<prioridad<<" )" << endl;
       return false;
     }
   }
@@ -297,26 +237,26 @@ bool cambiarInfo(ifstream &f,ofstream &g, colecInterdep<string, Evento>& colecci
         return true;
       }
     }else{
-      g << "NO CAMBIADO: "<< "[ "<< nombre << " ]"<< endl;
+      g << "NO CAMBIADO: "<< nombre << endl;
       return false;
     }
   }else{
-    g << "NO CAMBIADO: "<< "[ "<< nombre << " ]"<< endl;
+    g << "NO CAMBIADO: "<< nombre << endl;
     return false;
   }
 }
 
-void existe(ifstream &f,ofstream &g, colecInterdep<string, Evento>& coleccion){
+void existeEvento(ifstream &f,ofstream &g, colecInterdep<string, Evento>& coleccion){
   string nombre;
   getline(f, nombre);
   if(existe(coleccion, nombre)){
     if(existeDependiente(coleccion, nombre)){
-      g << "DEPendiente: "<< "[ "<< nombre << " ]"<< endl;
+      g << "DEPendiente: "<<  nombre <<  endl;
     }else{
-      g << "INDEPendiente: "<< "[ "<< nombre << " ]"<< endl;
+      g << "INDEPendiente: "<< nombre <<  endl;
     }
   }else{
-    g << "DESCONOCIDO: "<< "[ "<< nombre << " ]"<< endl;
+    g << "DESCONOCIDO: "<< nombre << endl;
   }
 }
 
@@ -341,19 +281,19 @@ int main(){
         }else if (instruccion == "C"){
           cambiarInfo(f,g,coleccion);
         }else if (instruccion == "D"){
-          procesarD(f, g, coleccion);
+          hacerDependienteEvento(f, g, coleccion);
         }else if (instruccion == "O"){
           obtenerInfoEvento(f, g, coleccion);
         }else if (instruccion == "E"){
-          existe(f,g,coleccion);
+          existeEvento(f,g,coleccion);
         }else if (instruccion == "I"){
-          procesarI(f,g,coleccion);
+          hacerIndependienteEvento(f,g,coleccion);
         }else if (instruccion == "B"){
-          procesarB(f,g,coleccion);
+          borrarEvento(f,g,coleccion);
         }else if (instruccion == "LD"){
-          procesarLD(f,g,coleccion);
+          listarDependientes(f,g,coleccion);
         }else if (instruccion == "LT"){
-          procesarLT(f,g,coleccion);
+          listarTodos(f,g,coleccion);
         }
       } 
     }else{
