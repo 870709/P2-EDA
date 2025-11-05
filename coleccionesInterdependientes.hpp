@@ -324,43 +324,10 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
       if (c.primElmt->id == id) {
           return false;//Si ya esta el dato abortamos.
       }
-    //1. En caso de si ser el padre el primer elemento solo faltará encontrar el hueco del dato a introducir, siempre y cuando este no exista ya.
-      else if (c.primElmt->id == super) {
-        //Caso de que el elemento nuevo vaya como primer elemento de lista
-          if(id<super){
-            typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
-              auxN->id=id;
-              auxN->valor=v;
-              auxN->identSup=c.primElmt;
-              c.primElmt->numDepend++;
-              auxN->numDepend = 0;
-              auxN->siguiente=c.primElmt;
-              c.primElmt = auxN;
-              c.numElem++;
-            return true;
-          }
-      //Si no se cumple la anterior verificacion empezamos la busqueda del hueco unicamente.
-      typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt; //No es necesario volver a verificar el primer elemento.
-      while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
-        auxH = auxH->siguiente;
-      }
-      if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
-      //Hemos encontrado el hueco y el padre es el primer elemento.
-        typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
-          auxN->siguiente=auxH->siguiente;
-          auxH->siguiente=auxN;
-          auxN->id=id;
-          auxN->valor=v;
-          auxN->identSup=c.primElmt;
-          auxN->numDepend=0;
-          c.numElem++;
-          c.primElmt->numDepend++;
-        return true;
-    }
-    //2. Hemos encontrado el hueco pero no al padre
+    //1. Caso critico por realizar una busqueda con siguientes
     if (c.primElmt->id > id) {
         //En busqueda del padre
-        typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt->siguiente;//ya sabemos que el primero no es
+        typename colecInterdep<ident, val> ::Nodo* auxP = c.primElmt;
         while(auxP!=nullptr && auxP->id < super){
           auxP = auxP->siguiente;
         }
@@ -377,8 +344,8 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         auxP->numDepend++;
         return true;
     }
-    //3. Debemos buscar tanto el hueco como el antecesor.
-      //3.1 Buscar primero el hueco y luego al padre
+    //2. Debemos buscar tanto el hueco como el antecesor.
+      //2.1 Buscar primero el hueco y luego al padre
         if(id<super){
         typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
           while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
@@ -401,9 +368,9 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
             auxN->numDepend=0;
             c.numElem++;
             return true;
-      //3.2 Buscar primero al padre y luego al hijo
+      //2.2 Buscar primero al padre y luego al hijo
         }else{
-            typename colecInterdep<ident, val> ::Nodo* auxP=c.primElmt->siguiente;
+            typename colecInterdep<ident, val> ::Nodo* auxP=c.primElmt;
             while(auxP!= nullptr && auxP->id < super){
               auxP = auxP->siguiente;
             }
