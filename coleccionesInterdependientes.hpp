@@ -37,12 +37,6 @@ será 0 si ningún elemento de la colección depende de dicho elemento.}
    se utilizarán respectivamente en todas las operaciones de coste O(N) de coleccionMon.
       bool operator==(const ident& id1, const ident& id2);
       bool operator<(const ident& id1, const ident& id2);
-   ///////
-   Y tanto al parametro formal ident, como a val se les exigirá una operacion para liberar su memoria dinamica:
-   liberar, que se usara en la operacion de borrar de coleccionMon.
-      void liberar(ident& id);
-      void liberar(val& v);
-  /////////
  */
 
 /* Operacion que crea una coleccion vacia con el primer puntero apuntando a NULL
@@ -312,11 +306,13 @@ template<typename ident, typename val> bool anadirIndependiente(colecInterdep<id
 }
 
 
-/* Esta implementación se basa en aplicar una busqueda en turnos, basada en la subdivisión de casos posibles. Al verficar que ninguno de ambos datos que necesitamos este al principio y iniciara una busqueda
- en funcion de los ordenes de las identidades al saber que la lista esta ordenada, buscando primero al menor y posteriormente al siguiente.
-  Donde a la vez que buscamos que se cumpla la existencia el hueco del nodo a introducir y el dato del que dependerá, dejaremos un puntero guardando esta hubicación que permita que cuando nos aseguramos que todas las condiciones se cumplen
-  hacer la reserva en memoria y asignar a este nodo un apuntado al dependiente ...
-Busqueda desde un nodo atras para el hueco... para el padre desde el mismo nodo...
+/* Esta implementación se basa en aplicar una busqueda en 2 turnos, basada en la subdivisión de casos posibles. Al verficar que ninguno de ambos datos que necesitamos 
+este al principio, iniciar una busqueda en funcion de los ordenes de las identidades al saber que la lista esta ordenada, buscando primero al menor y posteriormente
+al siguiente. Donde a la vez que buscamos que se cumpla la existencia del hueco del nodo a introducir y el dato del que dependerá, dejaremos un puntero guardando 
+esta hubicación (continuando con el siguiente puntero) que permita que cuando nos aseguramos que todas las condiciones se cumplen hacer la reserva en memoria y 
+asignar a este nodo un apuntado al dependiente. 
+Diferenciando 2 tipos de busqueda, una desde un nodo atras para cuando verifiquemos que el nodo a introducir tenga un hueco, para dejar a su nodo anterior apuntando a este
+directamente y para el padre que se trata desde el mismo nodo puesto que solo debemos verificar que existe ya en la estructura.
 */
 template<typename ident, typename val> bool anadirDependiente(colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super){
  //En caso de ser vacia ni empezamos, abortamos al saber que no estará el dato del que queremos depender. 
