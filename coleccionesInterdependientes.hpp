@@ -345,20 +345,34 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
         return true;
     }
     //2. Debemos buscar tanto el hueco como el antecesor.
-      //2.1 Buscar primero el hueco y luego al padre
+      //2.1 Buscar primero el hueco y luego al padre, generamos los nodos para que no mueran al terminar if-else y legibilidad de codigo
+     typename colecInterdep<ident, val> ::Nodo* auxH;
+     typename colecInterdep<ident, val> ::Nodo* auxP;
         if(id<super){
-        typename colecInterdep<ident, val> ::Nodo* auxH = c.primElmt;
+         auxH = c.primElmt;
           while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
              auxH = auxH->siguiente;
           }
           if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
-          typename colecInterdep<ident, val> ::Nodo* auxP;
           auxP = auxH->siguiente;
           while(auxP!= nullptr && auxP->id < super){
             auxP = auxP->siguiente;
           }
           if(auxP==nullptr || auxP->id!=super){return false;}
-          typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
+      //2.2 Buscar primero al padre y luego al hijo
+        }else{
+            auxP=c.primElmt;
+            while(auxP!= nullptr && auxP->id < super){
+              auxP = auxP->siguiente;
+            }
+            if(auxP==nullptr || auxP->id!=super){return false;}
+            auxH = auxP;
+            while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
+              auxH = auxH->siguiente;
+            }
+            if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
+          }
+               typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
             auxN->siguiente=auxH->siguiente;
             auxH->siguiente=auxN;
             auxN->id=id;
@@ -368,30 +382,6 @@ template<typename ident, typename val> bool anadirDependiente(colecInterdep<iden
             auxN->numDepend=0;
             c.numElem++;
             return true;
-      //2.2 Buscar primero al padre y luego al hijo
-        }else{
-            typename colecInterdep<ident, val> ::Nodo* auxP=c.primElmt;
-            while(auxP!= nullptr && auxP->id < super){
-              auxP = auxP->siguiente;
-            }
-            if(auxP==nullptr || auxP->id!=super){return false;}
-            typename colecInterdep<ident, val> ::Nodo* auxH;
-            auxH = auxP;
-            while(auxH->siguiente != nullptr && auxH->siguiente->id < id){
-              auxH = auxH->siguiente;
-            }
-            if(auxH->siguiente != nullptr && auxH->siguiente->id==id){return false;}
-            typename colecInterdep<ident, val>::Nodo* auxN = new typename colecInterdep<ident, val>::Nodo;
-              auxN->siguiente=auxH->siguiente;
-              auxH->siguiente=auxN;
-              auxN->id=id;
-              auxN->valor=v;
-              auxN->identSup=auxP;
-              auxP->numDepend++;
-              auxN->numDepend=0;
-              c.numElem++;
-            return true;
-          }
     }
 }
 //
