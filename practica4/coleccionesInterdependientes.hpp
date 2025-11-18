@@ -38,6 +38,7 @@ using namespace std;
 */
 template<typename ident, typename val> struct colecInterdep;
 
+template<typename ident, typename val> void escribir(colecInterdep<ident, val>& c);
 /* Crea una colección vacía, sin elementos.
 */
 template<typename ident, typename val> void crear(colecInterdep<ident, val>& c);
@@ -77,12 +78,12 @@ template<typename ident, typename val> void anadirDependiente(colecInterdep<iden
  contabilidad de su antiguo supervisor. E incrementa en 1 el 'NumDepend' de 'super'. Devuelve true si la operación se realiza. Si 'id' o 'super' no existen o
  son iguales, devuelve false.
 */
-template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
+template<typename ident, typename val> void hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super);
 
 /* En el caso de que exista 'id' y sea dependiente, lo convierte en independiente. Decrementa en 1 el 'NumDepend' de su antiguo supervisor.
  Devuelve true si la operación se realiza. Si 'id' no existe o ya era independiente, devuelve false.
 */
-template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
+template<typename ident, typename val> void hacerIndependiente(colecInterdep<ident, val>& c, const ident& id);
 
 /* En el caso de que exista un elemento con 'id', actualiza su campo 'valor' con el 'nuevo' valor y devuelve true. Si 'id' no existe, devuelve false.
 */
@@ -158,6 +159,12 @@ template<typename ident, typename val> bool obtenerInfo(const colecInterdep<iden
 
 
 template<typename ident, typename val> void anadirRec(typename colecInterdep<ident,val>::Nodo*& p, const ident& id, const val& v, bool& anadido, typename colecInterdep<ident,val>::Nodo* ptrSuper);
+
+
+template<typename ident, typename val> void encontrarRec(typename colecInterdep<ident,val>::Nodo*& p, const ident& id, bool& encontrado, typename colecInterdep<ident,val>::Nodo*& ptrId);
+
+
+template<typename ident, typename val> void escribirRec(typename colecInterdep<ident,val>::Nodo *&p);
 // FIN predeclaracion del TAD GENERICO colecInterdep (Fin INTERFAZ)
 
 
@@ -174,8 +181,8 @@ struct colecInterdep{
   friend bool existeIndependiente <ident, val> (const colecInterdep<ident, val>& c, const ident& id);
   friend void anadirIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& v);
   friend void anadirDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& v, const ident& super);
-  friend bool hacerDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const ident& super);
-  friend bool hacerIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id);
+  friend void hacerDependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id, const ident& super);
+  friend void hacerIndependiente <ident, val> (colecInterdep<ident, val>& c, const ident& id);
   friend bool actualizarVal <ident, val> (colecInterdep<ident, val>& c, const ident& id, const val& nuevo);
   friend bool obtenerVal <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& valO);
   friend bool obtenerSupervisor <ident, val> (const colecInterdep<ident, val>& c, const ident& id, ident& idO);
@@ -190,7 +197,7 @@ struct colecInterdep{
   friend bool siguienteNumDependientes <ident, val> (const colecInterdep<ident, val>& c, int &num);
   friend bool avanza <ident, val> (colecInterdep<ident, val>& c);
   friend bool obtenerInfo <ident, val> (const colecInterdep<ident, val>& c, const ident& id, val& valO, bool& depen, ident& idO, unsigned int& NumDepO);
-  
+  friend void escribir<ident, val>(colecInterdep<ident, val>& c);
 
 
   private:
@@ -217,6 +224,8 @@ struct colecInterdep{
     };
 
     friend void anadirRec<ident,val>(Nodo*& p, const ident& id, const val& v, bool& anadido,Nodo* ptrSuper);
+    friend void encontrarRec<ident,val>(Nodo*& p, const ident& id, bool& encontrado, Nodo*& ptrId);
+    friend void escribirRec<ident,val>(Nodo *&p);
 
     Nodo* raiz; // Puntero al primer elemento de la lista
     unsigned int numElem; // Número total de elementos
@@ -224,6 +233,24 @@ struct colecInterdep{
 
     
 };
+
+
+
+template<typename ident, typename val> void escribir(colecInterdep<ident, val>& c){
+  escribirRec<ident,val>(c.raiz);
+}
+
+template<typename ident, typename val> void escribirRec(typename colecInterdep<ident,val>::Nodo *&p){
+  if(p != nullptr){
+    escribirRec<ident,val>(p->hijoIzq);
+    if(p->identSup != nullptr){
+      cout << " ID: " << p->id << " Num dep: "<< p->numDepend << " Depende de: "<< p->identSup->id<< endl; 
+    }else{
+      cout << " ID: " << p->id << " Num dep: "<< p->numDepend<< endl; 
+    }
+    escribirRec<ident,val>(p->hijoDer);
+  }
+}
 
 
 // IMPLEMENTACION DE LAS OPERACIONES DEL TAD GENERICO colecInterdep
@@ -263,7 +290,7 @@ template<typename ident, typename val> bool existe(const colecInterdep<ident, va
   //Busqueda recursiva ordenada 
   bool encontrado;
   typename colecInterdep<ident, val> ::Nodo* ptrId = nullptr;
-  encontrarRec(c.raiz, id, encontrado, ptrId);
+  encontrarRec<ident,val>(c.raiz, id, encontrado, ptrId);
   return encontrado;
 
 }
@@ -271,7 +298,7 @@ template<typename ident, typename val> bool existe(const colecInterdep<ident, va
 //recorre el árbol recursivamente, si encuentra el nodo con id 'id' exito pone a true y devuelve en ptrId el puntero al nodo buscado.
 // si encontrado = true, ptrId = puntero al nodo con id 'id'
 // si encontrado = false, ptrId = puntero al huesco donde hay que meterlo 
-template<typename ident, typename val> void encontrarRec(typename colecInterdep<ident,val>::Nodo* p, const ident& id, bool& encontrado, typename colecInterdep<ident,val>::Nodo*& ptrId){
+template<typename ident, typename val> void encontrarRec(typename colecInterdep<ident,val>::Nodo*& p, const ident& id, bool& encontrado, typename colecInterdep<ident,val>::Nodo*& ptrId){
   if (p == nullptr){
     encontrado = false;
   } else {
@@ -327,31 +354,48 @@ template<typename ident, typename val> bool existeIndependiente(const colecInter
 
 template<typename ident, typename val> void anadirRec(typename colecInterdep<ident,val>::Nodo *&p, const ident& id, const val& v, bool& anadido, typename colecInterdep<ident,val>::Nodo* ptrSuper){
   if (p == nullptr){
-      typename colecInterdep<ident, val>::Nodo* aux = new typename colecInterdep<ident, val>::Nodo;
-      aux->id=id;
-      aux->valor=v;
-      aux->identSup=ptrSuper;
-      aux->numDepend = 0;
-      aux->hijoIzq = nullptr;
-      aux->hijoDer = nullptr;
+    cout << "estoy metiendo el nodo"<<endl;
+      p = new typename colecInterdep<ident, val>::Nodo;
+      p->id=id;
+      p->valor=v;
+      p->identSup=ptrSuper;
+      p->numDepend = 0;
+      p->hijoIzq = nullptr;
+      p->hijoDer = nullptr;
       anadido = true;
     } else {
+      cout << "comparo con raiz"<< "mi id"<< id<<endl;
       if(id < p->id) {
         anadirRec<ident, val>(p->hijoIzq, id,v, anadido, ptrSuper);
       } else if(id == p-> id) {
         anadido = false;
       } else if (id > p->id){
+        cout << "id mayor"<<endl;
         anadirRec<ident, val>(p->hijoDer, id, v,  anadido, ptrSuper);
       }
     }
 }
 
 template<typename ident, typename val> void anadirIndependiente(colecInterdep<ident, val>& c, const ident& id, const val& v){
-  bool anadido;
-  typename colecInterdep<ident, val> ::Nodo* ptrSuper = nullptr;
-  anadirRec<ident,val>(c.raiz, id, v, anadido, ptrSuper);
-  if(anadido){
-    c.numElem++;
+  if(c.numElem == 0){
+    cout << "anado el primer el"<< endl;
+    typename colecInterdep<ident, val>::Nodo* aux = new typename colecInterdep<ident, val>::Nodo;
+      aux->id=id;
+      aux->valor=v;
+      aux->identSup=nullptr;
+      aux->numDepend = 0;
+      aux->hijoIzq = nullptr;
+      aux->hijoDer = nullptr;
+      c.raiz = aux;
+      c.numElem++;
+  }else{
+    cout << "anado sig el"<< endl;
+    bool anadido;
+    typename colecInterdep<ident, val> ::Nodo* ptrSuper = nullptr;
+    anadirRec<ident,val>(c.raiz, id, v, anadido, ptrSuper);
+    if(anadido){
+      c.numElem++;
+    }
   }
 }
 
@@ -378,6 +422,7 @@ template<typename ident, typename val> void anadirDependiente(colecInterdep<iden
     anadirRec<ident,val>(c.raiz, id, v, anadidoDep, ptrSuper);
     if(anadidoDep){
       c.numElem++;
+      ptrSuper->numDepend++;
     }
   }
 }
@@ -390,51 +435,24 @@ template<typename ident, typename val> void anadirDependiente(colecInterdep<iden
 //    Si alguno de los datos que necesitamos no los encontramos, se devuelve 'false'. Si se encuentran ambos, se valora si el nodo 'aux' ya tenía un supervisor ('aux->identSup != nullptr'). 
 //    De ser así, se decrementa el contador 'numDepend'de ese antiguo supervisor. Finalmente, se asigna 'aux->identSup = auxP' y se incrementa 'auxP->numDepend' del nuevo dependiente.
 // */
-// template<typename ident, typename val> bool hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
-//   //Comprovamos el caso critico 
-//   if(esVacia(c)||(id==super)){return false;}
-//   //Parecido a la funcion anterior, busqueda doble de 2 entidades subdividos con el paso de relevo.
-//     typename colecInterdep<ident, val> ::Nodo* aux;
-//     typename colecInterdep<ident, val> ::Nodo* auxP;
-//     //Orden 1
-//       if(id<super){
-//         aux = c.primElmt;
-//         //Busqueda del primer termino
-//           while(aux != nullptr && aux->id < id){
-//             aux = aux->siguiente;
-//           }
-//           if(aux== nullptr || aux->id!=id){return false;}
-//         //Paso de relevo
-//           auxP=aux->siguiente;
-//         //Busqueda del segundo termino
-//           while(auxP!= nullptr && auxP->id < super){
-//             auxP = auxP->siguiente;
-//           }
-//           if(auxP==nullptr||auxP->id!=super){return false;}
-//     //Orden 2
-//       }else{
-//         auxP = c.primElmt;
-//         //Busqueda del primer termino
-//           while(auxP != nullptr && auxP->id < super){
-//             auxP = auxP->siguiente;
-//           }
-//           if(auxP== nullptr || auxP->id!=super){return false;}
-//         //Paso de relevo
-//         aux=auxP->siguiente;
-//         //Busqueda del segundo termino
-//           while(aux!= nullptr && aux->id < id){
-//             aux = aux->siguiente;
-//           }
-//           if(aux==nullptr||aux->id!=id){return false;}
-//       }
-//     //Datos encontrados comprovación y modificación
-//       if(aux->identSup != nullptr){
-//         aux->identSup->numDepend--;
-//       }
-//       aux->identSup = auxP;
-//       auxP->numDepend++;
-//       return true;
-// }
+template<typename ident, typename val> void hacerDependiente(colecInterdep<ident, val>& c, const ident& id, const ident& super){
+  if(id!=super){
+    bool encontradoSuper; 
+    typename colecInterdep<ident, val> ::Nodo* ptrSuper = nullptr;
+    encontrarRec<ident,val>(c.raiz, super, encontradoSuper, ptrSuper);
+
+    if(encontradoSuper){
+      bool encontradoId;
+      typename colecInterdep<ident, val> ::Nodo* ptrId = nullptr;
+      encontrarRec<ident,val>(c.raiz, id, encontradoId, ptrId);
+      if(encontradoId){
+        ptrId->identSup = ptrSuper;
+        ptrSuper->numDepend++;
+      }
+    }
+  }
+  
+}
 
 // /*En el caso de que exista 'id' y sea dependiente, lo convierte en independiente. Decrementa en 1 el 'NumDepend' de su antiguo supervisor.
 //  Devuelve true si la operación se realiza. Si 'id' no existe o ya era independiente, devuelve false.
@@ -442,19 +460,11 @@ template<typename ident, typename val> void anadirDependiente(colecInterdep<iden
 //    se accede a su supervisor ('aux->identSup') y se decrementa 'numDepend'.
 //    Para despues establecer 'aux->identSup = nullptr' para marcarlo como independiente. Si no se encuentra o ya era independiente, devuelve 'false'.
 // */
-// template<typename ident, typename val> bool hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
-//   typename colecInterdep<ident, val> ::Nodo* aux = c.primElmt;
-//   //Realizamos la busqueda
-//     while(aux != nullptr && aux->id < id){
-//       aux = aux->siguiente;
-//     }
-//   //En caso de si ser dependiente podemos realizar la modificacion
-//   if(aux != nullptr && aux-> id == id && aux->identSup != nullptr){
-//     aux->identSup->numDepend--;
-//     aux->identSup = nullptr;
-//     return true;
-//   }
-//   return false;
+// template<typename ident, typename val> void hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
+//   bool encontradoId;
+//   typename colecInterdep<ident, val> ::Nodo* ptrId = nullptr;
+//   encontrarRec<ident,val>(c.raiz, id, encontradoId, ptrId);
+//   if(encontradoId)
 // }
 
 // /* En el caso de que exista un elemento con 'id', actualiza su campo 'valor' con el 'nuevo' valor y devuelve true. Si 'id' no existe, devuelve false.
