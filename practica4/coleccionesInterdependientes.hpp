@@ -460,12 +460,22 @@ template<typename ident, typename val> void hacerDependiente(colecInterdep<ident
 //    se accede a su supervisor ('aux->identSup') y se decrementa 'numDepend'.
 //    Para despues establecer 'aux->identSup = nullptr' para marcarlo como independiente. Si no se encuentra o ya era independiente, devuelve 'false'.
 // */
-// template<typename ident, typename val> void hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
-//   bool encontradoId;
-//   typename colecInterdep<ident, val> ::Nodo* ptrId = nullptr;
-//   encontrarRec<ident,val>(c.raiz, id, encontradoId, ptrId);
-//   if(encontradoId)
-// }
+template<typename ident, typename val> void hacerIndependiente(colecInterdep<ident, val>& c, const ident& id){
+  bool encontradoId;
+  typename colecInterdep<ident, val> ::Nodo* ptrId = nullptr;
+  encontrarRec<ident,val>(c.raiz, id, encontradoId, ptrId);
+  if(encontradoId){
+    if(ptrId->identSup != nullptr){
+      bool encontradoSuper; 
+      typename colecInterdep<ident, val> ::Nodo* ptrSuper = nullptr;
+      encontrarRec<ident,val>(c.raiz, ptrId->identSup->id, encontradoSuper, ptrSuper);
+      if(encontradoSuper){
+        ptrId->identSup=nullptr;
+        ptrSuper->numDepend--;
+      }
+    }
+  }
+}
 
 // /* En el caso de que exista un elemento con 'id', actualiza su campo 'valor' con el 'nuevo' valor y devuelve true. Si 'id' no existe, devuelve false.
 //    Busca el nodo con 'id' ('aux'). Si lo encuentra, se sobrescribe su campo 'valor' con el 'nuevo' valor y se devuelve 'true'.
